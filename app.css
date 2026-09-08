@@ -274,3 +274,7 @@ button { font-family: inherit; cursor: pointer; }
 }
 .toast.show { opacity: 1; transform: none; }
 .toast.err { border-color: var(--bad); color: #ffd9dd; }
+
+/* Bieżnia bez pochylni: przycisk zmiany odcinka zajmuje całą szerokość. */
+.controls.no-incline { grid-template-columns: 1fr 1.6fr 1fr; }
+.controls.no-incline #c-skip { grid-column: 1 / -1; }

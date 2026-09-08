@@ -116,12 +116,15 @@ function openPlan(id) {
   $('pd-chart').innerHTML = chartHtml(r.segments, maxSpeed);
 
   $('pd-segments').innerHTML = r.segments
-    .map((s) =>
-      '<div class="seg ' + s.kind + '"><i></i>' +
-      '<div class="nm">' + s.label + (s.incline > 0 ? ' · ' + s.incline + '%' : '') + '</div>' +
+    .map((s) => {
+      const inc = s.incline > 0 ? ' · ' + s.incline + '%'
+                : s.wantedIncline > 0 ? ' · <s>' + s.wantedIncline + '%</s>'
+                : '';
+      return '<div class="seg ' + s.kind + '"><i></i>' +
+      '<div class="nm">' + s.label + inc + '</div>' +
       '<div class="sp">' + s.speed.toFixed(1).replace('.', ',') + '</div>' +
-      '<div class="tm">' + fmtTime(s.duration) + '</div></div>'
-    )
+      '<div class="tm">' + fmtTime(s.duration) + '</div></div>';
+    })
     .join('');
 
   const warn = $('pd-warning');
@@ -129,8 +132,22 @@ function openPlan(id) {
   if (plan.manual) notes.push('Ten plan nie ustawia prędkości automatycznie — tempo dobierasz sam.');
   if (!tm.connected) notes.push('Bieżnia nie jest połączona. Możesz uruchomić trening w trybie prowadzenia, ale bez automatycznego sterowania.');
   else if (!tm.caps.speed) notes.push('Ta bieżnia nie przyjmuje komend prędkości — dostaniesz tylko zapowiedzi, co ustawić.');
-  else if (!tm.caps.incline && r.segments.some((s) => s.incline > 0)) {
-    notes.push('Bieżnia nie pozwala sterować nachyleniem — segmenty pod górę ustaw ręcznie.');
+
+  // Porównujemy z nachyleniem ZAŁOŻONYM w planie, nie z już przyciętym do zera —
+  // inaczej ostrzeżenie nigdy by się nie pokazało.
+  const maxWanted = Math.max(0, ...r.segments.map((s) => s.wantedIncline || 0));
+  if (maxWanted > profile.maxInclineCap) {
+    notes.push(
+      'Plan zakłada nachylenie do ' + maxWanted + '%, a Twoja bieżnia nie ma sterowanej pochylni — ' +
+      'odcinki pod górę pobiegniesz płasko. Wysiłek będzie zauważalnie mniejszy niż zakładany.'
+    );
+  }
+
+  // Górne kotwice zlewają się w jedno, gdy plan żąda więcej, niż bieżnia potrafi.
+  const capped = r.segments.filter((s) => s.speed >= profile.maxSpeedCap).length;
+  if (capped > 2 && tm.connected) {
+    notes.push('Część odcinków została przycięta do maksymalnej prędkości bieżni (' +
+               profile.maxSpeedCap + ' km/h).');
   }
   warn.innerHTML = notes.join('<br>');
   warn.classList.toggle('hidden', notes.length === 0);
@@ -154,6 +171,20 @@ $('btn-start').addEventListener('click', async () => {
 // ------------------------------------------------------------ ekran treningu
 
 const RING = 553;
+
+/**
+ * Bieżnia bez sterowanej pochylni pokazywałaby stałe zero i miała dwa martwe
+ * przyciski — chowamy je i oddajemy miejsce przyciskowi zmiany odcinka.
+ */
+function updateInclineUi() {
+  const has = profile.maxInclineCap > 0;
+  $('tile-incline').classList.toggle('hidden', !has);
+  $('tile-avg').classList.toggle('hidden', has);
+  $('c-inc-up').classList.toggle('hidden', !has);
+  $('c-inc-down').classList.toggle('hidden', !has);
+  el('.controls').classList.toggle('no-incline', !has);
+  $('p-inc').closest('.field').classList.toggle('hidden', !has && tm.connected);
+}
 
 function paceStr(kmh) {
   if (!kmh || kmh < 0.5) return '—';
@@ -187,6 +218,8 @@ engine.on('tick', (d) => {
   $('run-total').textContent = fmtTime(d.totalRemaining);
   $('run-dist').textContent = (d.distanceM / 1000).toFixed(2).replace('.', ',');
   $('run-incline').textContent = String(d.metrics.incline ?? d.targetIncline);
+  const avg = d.totalElapsed > 0 ? (d.distanceM / 1000) / (d.totalElapsed / 3600) : 0;
+  $('run-avg').textContent = avg.toFixed(1).replace('.', ',');
   $('run-kcal').textContent = String(d.metrics.kcal ?? Math.round(profile.weightKg * (d.distanceM / 1000) * 1.036));
   $('run-hr').textContent = d.metrics.hr ? String(d.metrics.hr) : '—';
   $('run-pace').textContent = paceStr(actual ?? d.targetSpeed);
@@ -435,6 +468,7 @@ function renderCaps(caps) {
     profile.maxInclineCap = caps.inclineRange.max;
     store.saveProfile(profile);
   }
+  updateInclineUi();
   renderPlans();
 }
 
@@ -539,6 +573,7 @@ $('btn-clear-log').addEventListener('click', () => { $('log').textContent = ''; 
 if (!bleAvailable()) $('unsupported').classList.remove('hidden');
 renderPlans();
 renderProfile();
+updateInclineUi();
 if (settings.lastDeviceName) $('btn-connect').textContent = 'Połącz: ' + settings.lastDeviceName;
 
 // Ostrzeżenie przed zamknięciem karty w trakcie treningu — pas by dalej chodził.

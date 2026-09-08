@@ -117,9 +117,34 @@ stopami. Zabezpieczenia w kodzie:
 Mimo to: pierwszy test sterowania rób **stojąc obok pasa, nie na nim**,
 z ręką przy wyłączniku.
 
+## Zbadany sprzęt: Zipro Newlite (moduł FS-BT-C1)
+
+Wynik sesji diagnostycznej z 8 września 2026, nazwa BLE `FS-B13AA3`,
+producent modułu `FITSHOW`, firmware `V2.6.3`:
+
+| Cecha | Wynik |
+|---|---|
+| Protokół | **FTMS** (`0x1826`) — standard Bluetooth SIG, nie wymaga reverse-engineeringu |
+| Control Point (`0x2AD9`) | jest, `write` + `indicate` |
+| Request Control (`0x00`) | potwierdzone — odpowiedź `80 00 01` |
+| Stop / Pause (`0x08`) | potwierdzone — odpowiedź `80 08 01` |
+| Set Target Speed (`0x02`) | **niepotwierdzone — do przetestowania** |
+| Zakres prędkości | 1,0–12,0 km/h, krok 0,1 |
+| Nachylenie | **brak** — pochylnia niesterowana i nieobecna fizycznie |
+| Dane bieżące | prędkość, dystans, czas, kalorie, tętno (przez pas piersiowy) |
+
+Bieżnia równolegle nadaje ten sam strumień protokołem własnościowym FitShow na
+`0xFFF0`, ale jest on w tym przypadku zbędny — FTMS pokrywa wszystko.
+
+Konsekwencje dla planów: górna granica 12 km/h oznacza, że warto ustawić
+*tempo szybkie* w okolicach 11 km/h, żeby kotwice `tempo`, `próg` i `VO2max`
+nie zlały się w jedną wartość. Plany oparte na pochylni (marsz 12-3-30,
+podbiegi) zostały zastąpione odpowiednikami na płaskim — utrzymywanie ich
+byłoby udawaniem, że sprzęt potrafi coś, czego nie potrafi.
+
 ## Plany treningowe
 
-Czternaście planów, od marszu 12-3-30 po interwały norweskie 4×4. Prędkości nie
+Czternaście planów, od marszobiegu po interwały norweskie 4×4. Prędkości nie
 są zapisane na sztywno — każdy plan przelicza się z Twojego profilu, więc rośnie
 razem z formą i nie trzeba go przepisywać.
 

@@ -12,10 +12,10 @@ const rep = (n, segs) => Array.from({ length: n }, () => segs.map((s) => ({ ...s
 
 export const DEFAULT_PROFILE = {
   walk: 5.0,       // spokojny marsz
-  easy: 8.5,       // tempo, w którym możesz swobodnie rozmawiać
-  fast: 13.5,      // tempo, które utrzymasz około 3 minuty
-  maxSpeedCap: 16, // twardy limit bezpieczeństwa
-  maxInclineCap: 15,
+  easy: 8.0,       // tempo, w którym możesz swobodnie rozmawiać
+  fast: 11.0,      // tempo, które utrzymasz około 3 minuty
+  maxSpeedCap: 12, // twardy limit bezpieczeństwa
+  maxInclineCap: 0,
   weightKg: 80,
   age: 40,
   restBetweenAnnounce: true,
@@ -48,8 +48,11 @@ export function anchorSpeed(anchor, p) {
 export function resolveSegment(seg, profile) {
   const speed = typeof seg.s === 'number' ? Math.min(profile.maxSpeedCap, seg.s)
                                           : anchorSpeed(seg.s, profile);
-  const incline = Math.min(profile.maxInclineCap, seg.i ?? 0);
-  return { ...seg, speed, incline, duration: seg.t };
+  const wantedIncline = seg.i ?? 0;
+  const incline = Math.min(profile.maxInclineCap, wantedIncline);
+  // wantedIncline zachowujemy, żeby interfejs mógł powiedzieć, że plan
+  // zakładał podbieg, którego ta bieżnia nie potrafi ustawić.
+  return { ...seg, speed, incline, wantedIncline, duration: seg.t };
 }
 
 export function resolvePlan(plan, profile) {
@@ -82,44 +85,48 @@ export const PLANS = [
     name: 'Spalanie tłuszczu 45 min',
     focus: 'Wytrzymałość / redukcja',
     level: 1,
-    desc: 'Długi wysiłek o niskiej intensywności z falującym nachyleniem. Nachylenie podnosi koszt energetyczny bez podnoszenia prędkości, więc stawy dostają mniej.',
+    desc: 'Długi wysiłek o niskiej intensywności z delikatnie falującą prędkością. Zmiany są na tyle małe, że tętno cały czas zostaje w strefie tlenowej, a na tyle wyraźne, żeby nie zasnąć z nudów.',
     segments: [
       WU(M(5)),
       ...rep(4, [
-        { t: M(4), s: 'easy', i: 1, kind: 'work', label: 'Płasko' },
-        { t: M(4), s: 'easy', i: 5, kind: 'work', label: 'Pod górę 5%', cue: 'Skróć krok, utrzymaj rytm' },
-        { t: M(1), s: 'brisk', i: 2, kind: 'recovery', label: 'Luz' },
+        { t: M(4), s: 'easy', kind: 'work', label: 'Spokojnie' },
+        { t: M(4), s: 'steady', kind: 'work', label: 'Odrobinę żywiej', cue: 'Oddech ma zostać równy' },
+        { t: M(1), s: 'jog', kind: 'recovery', label: 'Luz' },
       ]),
       CD(M(4)),
     ],
   },
   {
-    id: 'walk-12-3-30',
-    name: 'Marsz 12-3-30',
-    focus: 'Redukcja / niskie obciążenie',
+    id: 'walk-run-40',
+    name: 'Marszobieg 40 min',
+    focus: 'Redukcja / powrót po przerwie',
     level: 1,
-    desc: 'Nachylenie 12%, prędkość 4,8 km/h, 30 minut. Bardzo wysoki wydatek energetyczny przy minimalnym obciążeniu kolan — jeśli wracasz po przerwie lub masz problemy ze stawami, zacznij tutaj.',
+    desc: 'Naprzemiennie trzy minuty truchtu i dwie minuty marszu. Bez pochylni to najuczciwszy sposób na długi wysiłek przy niskim obciążeniu stawów — sumarycznie robisz sporo pracy, ale nigdzie nie ma momentu, który by Cię rozbił.',
     segments: [
-      { t: M(3), s: 'walk', i: 0, kind: 'warmup', label: 'Rozgrzewka' },
-      { t: M(2), s: 4.8, i: 6, kind: 'warmup', label: 'Wchodzenie w nachylenie' },
-      { t: M(30), s: 4.8, i: 12, kind: 'work', label: 'Marsz 12%', cue: 'Nie trzymaj się poręczy — to zmienia cały efekt' },
-      CD(M(4)),
+      { t: M(4), s: 'walk', kind: 'warmup', label: 'Marsz na rozgrzewkę' },
+      ...rep(6, [
+        { t: M(3), s: 'jog', kind: 'work', label: 'Trucht' },
+        { t: M(2), s: 'brisk', kind: 'recovery', label: 'Marsz', cue: 'Nie trzymaj się poręczy' },
+      ]),
+      { t: M(3), s: 'easy', kind: 'work', label: 'Ostatni odcinek biegu' },
+      CD(M(3)),
     ],
   },
   {
-    id: 'hill-8x2',
-    name: 'Podbiegi 8 × 2 min',
-    focus: 'Siła biegowa',
-    level: 2,
-    desc: 'Osiem podbiegów po dwie minuty. Buduje siłę mięśni i ekonomię biegu — działa mocniej niż płaskie interwały przy niższej prędkości pasa.',
+    id: 'cruise-5x5',
+    name: 'Interwały progowe 5 × 5 min',
+    focus: 'Próg mleczanowy',
+    level: 3,
+    desc: 'Pięć pięciominutowych odcinków tuż pod progiem, z minutową przerwą. Na płaskiej bieżni to najskuteczniejszy zamiennik podbiegów — obciążenie bierze się z czasu spędzonego przy progu, nie z nachylenia.',
     segments: [
       WU(M(4)),
-      { t: M(4), s: 'jog', kind: 'warmup', label: 'Rozbieganie' },
-      ...rep(8, [
-        { t: M(2), s: 'steady', i: 8, kind: 'work', label: 'Podbieg 8%', cue: 'Pracuj rękami, wzrok w przód' },
-        { t: M(2), s: 'jog', i: 0, kind: 'recovery', label: 'Zjazd — trucht' },
+      { t: M(5), s: 'easy', kind: 'warmup', label: 'Rozbieganie' },
+      ...rep(5, [
+        { t: M(5), s: 'threshold', kind: 'work', label: 'Odcinek progowy', cue: 'Ciężko, ale równo — to nie sprint' },
+        { t: M(1), s: 'jog', kind: 'recovery', label: 'Przerwa' },
       ]),
-      CD(M(5)),
+      { t: M(2), s: 'jog', kind: 'cooldown', label: 'Wytruchtanie' },
+      CD(M(3)),
     ],
   },
   {
@@ -132,7 +139,7 @@ export const PLANS = [
       WU(M(4)),
       { t: M(6), s: 'easy', kind: 'warmup', label: 'Rozbieganie' },
       ...rep(4, [
-        { t: M(4), s: 'vo2', i: 1, kind: 'work', label: 'Interwał 4 min', cue: 'Powinno być ciężko — mowa niemożliwa' },
+        { t: M(4), s: 'vo2', kind: 'work', label: 'Interwał 4 min', cue: 'Powinno być ciężko — mowa niemożliwa' },
         { t: M(3), s: 'jog', i: 0, kind: 'recovery', label: 'Trucht 3 min' },
       ]),
       { t: M(3), s: 'jog', kind: 'cooldown', label: 'Wytruchtanie' },
@@ -190,7 +197,7 @@ export const PLANS = [
     segments: [
       WU(M(4)),
       { t: M(6), s: 'easy', kind: 'warmup', label: 'Rozbieganie' },
-      { t: M(20), s: 'tempo', i: 1, kind: 'work', label: 'Tempo', cue: 'Komfortowo ciężko — krótkie zdania, nie rozmowa' },
+      { t: M(20), s: 'tempo', kind: 'work', label: 'Tempo', cue: 'Komfortowo ciężko — krótkie zdania, nie rozmowa' },
       { t: M(4), s: 'jog', kind: 'cooldown', label: 'Wytruchtanie' },
       CD(M(4)),
     ],
@@ -208,7 +215,7 @@ export const PLANS = [
       { t: M(2), s: 'easy', kind: 'recovery', label: 'Luz' },
       { t: S(45), s: 'vo2', kind: 'work', label: 'Zryw 45 s' },
       { t: M(1.5), s: 'jog', kind: 'recovery', label: 'Luz' },
-      { t: M(3), s: 'steady', i: 3, kind: 'work', label: 'Podjazd 3 min' },
+      { t: M(3), s: 'steady', kind: 'work', label: 'Mocniejszy blok 3 min' },
       { t: M(2), s: 'easy', kind: 'recovery', label: 'Luz' },
       { t: S(30), s: 'sprint', kind: 'work', label: 'Sprint 30 s' },
       { t: M(2), s: 'jog', kind: 'recovery', label: 'Luz' },
@@ -262,9 +269,9 @@ export const PLANS = [
       WU(M(5)),
       { t: M(5), s: 'jog', kind: 'warmup', label: 'Rozbieganie' },
       ...rep(3, [
-        { t: M(6), s: 'easy', i: 1, kind: 'work', label: 'Blok płaski' },
-        { t: M(4), s: 'easy', i: 3, kind: 'work', label: 'Blok 3%' },
-        { t: M(5), s: 'steady', i: 0, kind: 'work', label: 'Blok żywszy' },
+        { t: M(6), s: 'easy', kind: 'work', label: 'Blok spokojny' },
+        { t: M(4), s: 'jog', kind: 'recovery', label: 'Blok wolniejszy' },
+        { t: M(5), s: 'steady', kind: 'work', label: 'Blok żywszy' },
       ]),
       { t: M(2), s: 'jog', kind: 'cooldown', label: 'Wytruchtanie' },
       CD(M(3)),
