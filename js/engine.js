@@ -36,7 +36,8 @@ export class WorkoutEngine {
     this._lastTs = 0;
     this._announced = -1;
     this._ramped = -1;
-    this._distanceBase = null;
+    this._lastMachineDist = null;
+    this.distanceM = 0;
     this.samples = [];         // do wykresu i historii
     this._cb = { tick: [], segment: [], state: [], msg: [] };
 
@@ -64,7 +65,8 @@ export class WorkoutEngine {
     this.inclineOffset = 0;
     this._announced = -1;
     this._ramped = -1;
-    this._distanceBase = null;
+    this._lastMachineDist = null;
+    this.distanceM = 0;
     this.samples = [];
     this.autoControl = !plan.manual && this.tm.caps.speed;
     this._setState(STATE.IDLE);
@@ -99,20 +101,46 @@ export class WorkoutEngine {
     }
     if (this.state !== STATE.COUNTDOWN) return;
 
-    this._lastTs = performance.now();
     this._setState(STATE.RUNNING);
     this.speech?.say('Zaczynamy. ' + this.segment.label + ', ' + spoken(this.targetSpeedFor(this.segment)) + ' kilometrów na godzinę.');
+    this._emit('tick', this._tickPayload());
 
     if (this.autoControl) {
       try {
         await this.tm.start();
-        await this.applySegment(this.segment, { immediate: true });
+        await this._waitForBelt();
       } catch (e) {
         this._msg('Nie udało się wystartować bieżni: ' + e.message + ' — przechodzę w tryb prowadzenia.');
         this.autoControl = false;
       }
     }
+
+    // Zegar rusza dopiero teraz. Wcześniej liczyłby czas rozmowy z bieżnią
+    // i odliczanie na jej konsoli jako czas treningu.
+    this._lastTs = performance.now();
     this._loop();
+    // Rozpędzania nie czekamy - pierwszy odcinek ma już biec.
+    this.applySegment(this.segment, { immediate: true });
+  }
+
+  /**
+   * Po komendzie Start bieżnia odlicza jeszcze kilka sekund na własnej konsoli,
+   * zanim ruszy pas. Bez tego oczekiwania trening zaczynałby się na stojąco.
+   */
+  async _waitForBelt(timeoutS = 30) {
+    const t0 = Date.now();
+    let announced = false;
+    while (Date.now() - t0 < timeoutS * 1000) {
+      if (this.state !== STATE.RUNNING) return false;
+      if ((this.tm.metrics?.speed ?? 0) > 0.2) return true;
+      if (!announced && Date.now() - t0 > 1500) {
+        announced = true;
+        this._msg('Czekam, aż pas ruszy — bieżnia odlicza na swojej konsoli.');
+      }
+      await new Promise((r) => setTimeout(r, 200));
+    }
+    this._msg('Pas nie ruszył w ciągu 30 sekund. Sprawdź kluczyk bezpieczeństwa i konsolę.');
+    return false;
   }
 
   _loop() {
@@ -131,8 +159,14 @@ export class WorkoutEngine {
 
     const m = this.tm.metrics || {};
     if (m.distance != null) {
-      if (this._distanceBase === null) this._distanceBase = m.distance;
-      this.distanceM = Math.max(0, m.distance - this._distanceBase);
+      if (this._lastMachineDist === null) this._lastMachineDist = m.distance;
+      let delta = m.distance - this._lastMachineDist;
+      // Bieżnia zeruje własny licznik po zatrzymaniu pasa. Ujemny przyrost to
+      // taki reset, a nie cofnięcie się — inaczej przepadłby cały przebyty
+      // dystans, gdybyś zatrzymał pas z konsoli w środku treningu.
+      if (delta < 0) delta = m.distance;
+      this._lastMachineDist = m.distance;
+      this.distanceM = (this.distanceM ?? 0) + delta;
     } else {
       // Bieżnia nie raportuje dystansu — całkujemy z prędkości.
       this.distanceM = (this.distanceM ?? 0) + ((m.speed ?? this.targetSpeedFor(this.segment)) * 1000 / 3600) * dt;
@@ -153,7 +187,11 @@ export class WorkoutEngine {
 
     if (this.segElapsed >= this.segment.duration) this._advance();
 
-    this._emit('tick', {
+    this._emit('tick', this._tickPayload());
+  }
+
+  _tickPayload() {
+    return {
       state: this.state,
       segment: this.segment,
       segIndex: this.segIndex,
@@ -161,10 +199,10 @@ export class WorkoutEngine {
       totalRemaining: this.totalRemaining,
       totalElapsed: this.totalElapsed,
       distanceM: this.distanceM ?? 0,
-      metrics: m,
+      metrics: this.tm.metrics || {},
       targetSpeed: this.targetSpeedFor(this.segment),
       targetIncline: this.targetInclineFor(this.segment),
-    });
+    };
   }
 
   _maybeAnnounce() {

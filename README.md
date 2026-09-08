@@ -113,6 +113,9 @@ stopami. Zabezpieczenia w kodzie:
 - **Brak komend po zatrzymaniu** — żadna zakolejkowana komenda prędkości nie
   dotrze do bieżni po pauzie ani po stopie.
 - **Utrata połączenia** wstrzymuje trening i uruchamia ponowne łączenie.
+- **Czekanie na ruszenie pasa** — po komendzie Start bieżnia odlicza jeszcze
+  kilka sekund na własnej konsoli. Zegar treningu rusza dopiero, gdy pas
+  faktycznie jedzie, więc pierwszy odcinek nie ucieka na stojąco.
 
 Mimo to: pierwszy test sterowania rób **stojąc obok pasa, nie na nim**,
 z ręką przy wyłączniku.
@@ -127,8 +130,11 @@ producent modułu `FITSHOW`, firmware `V2.6.3`:
 | Protokół | **FTMS** (`0x1826`) — standard Bluetooth SIG, nie wymaga reverse-engineeringu |
 | Control Point (`0x2AD9`) | jest, `write` + `indicate` |
 | Request Control (`0x00`) | potwierdzone — odpowiedź `80 00 01` |
+| Start / Resume (`0x07`) | potwierdzone — odpowiedź `80 07 01` |
+| Set Target Speed (`0x02`) | **potwierdzone** — `80 02 01`, pas faktycznie zmienia prędkość |
 | Stop / Pause (`0x08`) | potwierdzone — odpowiedź `80 08 01` |
-| Set Target Speed (`0x02`) | **niepotwierdzone — do przetestowania** |
+| Opóźnienie komendy | 150–500 ms od zapisu do zmiany na pasie |
+| Odliczanie po Start | **~5 s** zanim pas ruszy — konsola odlicza sama |
 | Zakres prędkości | 1,0–12,0 km/h, krok 0,1 |
 | Nachylenie | **brak** — pochylnia niesterowana i nieobecna fizycznie |
 | Dane bieżące | prędkość, dystans, czas, kalorie, tętno (przez pas piersiowy) |
