@@ -30,6 +30,7 @@ export const DEFAULT_SETTINGS = {
   rampStep: 0.5,
   keepAwake: true,
   lastDeviceName: '',
+  seenVersion: '',
 };
 
 export const loadSettings = () => read(KEY_SETTINGS, DEFAULT_SETTINGS);

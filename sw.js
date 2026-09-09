@@ -2,7 +2,11 @@
 // (Bluetooth i tak nie wymaga sieci), ale po wejściu online zawsze bierze
 // najnowszą wersję plików.
 
-const CACHE = 'ziprun-v2';
+// Nazwa pamięci podręcznej bierze się z numeru wersji, więc podniesienie
+// wersji samo unieważnia starą pamięć - nie trzeba pamiętać o dwóch miejscach.
+import { VERSION } from './js/version.js';
+
+const CACHE = 'ziprun-' + VERSION;
 const ASSETS = [
   './',
   'index.html',
@@ -13,6 +17,7 @@ const ASSETS = [
   'js/engine.js',
   'js/speech.js',
   'js/storage.js',
+  'js/version.js',
   'js/trace.js',
   'js/ble/uuids.js',
   'js/ble/ftms.js',

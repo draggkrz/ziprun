@@ -1,0 +1,74 @@
+// Jedno źródło prawdy o wersji aplikacji.
+//
+// Stąd bierze ją nagłówek, historia zmian, nazwa pamięci podręcznej service
+// workera oraz nagłówki raportów diagnostycznych i zapisów treningu. Dzięki
+// temu przy analizie logu zawsze wiadomo, która wersja go wyprodukowała.
+//
+// Podnosząc wersję, dopisz wpis na początku CHANGELOG — kolejność malejąca.
+
+export const VERSION = '1.4.0';
+
+export const CHANGELOG = [
+  {
+    version: '1.4.0',
+    date: '2026-09-09',
+    title: 'Wersjonowanie i historia zmian',
+    changes: [
+      'Numer wersji widoczny obok nazwy aplikacji — dotknięcie otwiera historię zmian.',
+      'Nazwa pamięci podręcznej bierze się z numeru wersji, więc nowa wersja sama zastępuje starą.',
+      'Powiadomienie po aktualizacji, z odnośnikiem do listy zmian.',
+      'Numer wersji trafia do nagłówków raportu diagnostycznego i zapisu treningu.',
+    ],
+  },
+  {
+    version: '1.3.0',
+    date: '2026-09-09',
+    title: 'Zapis techniczny treningu',
+    changes: [
+      'Każdy trening jest rejestrowany: komendy wysłane do bieżni, jej odpowiedzi, statusy, przejścia odcinków, ostrzeżenia i rozłączenia.',
+      'Pomiary raz na sekundę: prędkość faktyczna i docelowa, dystans, kalorie, tętno, nazwa odcinka.',
+      'Eksport do pliku tekstowego z podsumowania treningu albo z zakładki Historia. Tabela pomiarów w formacie CSV.',
+      'Dwie osie czasu w pomiarach: od naciśnięcia Start i od chwili, gdy pas ruszył. Różnica między nimi to odliczanie konsoli bieżni.',
+      'Przechowywane są trzy ostatnie treningi.',
+      'Poprawka: komunikat o korekcie prędkości używał kropki dziesiętnej zamiast przecinka.',
+    ],
+  },
+  {
+    version: '1.2.0',
+    date: '2026-09-08',
+    title: 'Zgodność z odliczaniem bieżni',
+    changes: [
+      'Po komendzie Start bieżnia odlicza kilka sekund na własnej konsoli. Zegar treningu rusza teraz dopiero, gdy pas faktycznie jedzie — wcześniej pierwszy odcinek tracił te sekundy, a zapowiedzi leciały do stojącego biegacza.',
+      'Czas rozmowy z bieżnią i rozpędzania pasa nie jest już naliczany jako czas treningu.',
+      'Bieżnia zeruje własny licznik dystansu po zatrzymaniu pasa. Dystans jest teraz sumą przyrostów, więc zatrzymanie pasa z konsoli w środku treningu nie kasuje całego przebiegu.',
+    ],
+  },
+  {
+    version: '1.1.0',
+    date: '2026-09-08',
+    title: 'Dostosowanie do bieżni Zipro Newlite',
+    changes: [
+      'Diagnostyka wykazała brak sterowanej pochylni i zakres prędkości 1–12 km/h.',
+      'Plany oparte na pochylni zastąpione odpowiednikami na płaskim: Marszobieg 40 min i Interwały progowe 5 × 5.',
+      'Domyślny profil dopasowany do zakresu 1–12 km/h, żeby górne kotwice intensywności nie zlewały się w jedną wartość.',
+      'Ekran treningu ukrywa kafelek nachylenia i przyciski ±1%, gdy bieżnia nie ma pochylni. W ich miejsce średnia prędkość.',
+      'Poprawka: ostrzeżenie o braku pochylni nigdy się nie pokazywało, bo sprawdzało segmenty już przycięte do zera.',
+    ],
+  },
+  {
+    version: '1.0.0',
+    date: '2026-09-08',
+    title: 'Pierwsza wersja',
+    changes: [
+      'Czternaście planów treningowych skalowanych z profilu użytkownika.',
+      'Automatyczne sterowanie prędkością przez standard FTMS, ze stopniowym rampowaniem i zapowiedzią wyprzedzającą.',
+      'Sterownik protokołów własnościowych ze snifferem ramek, dla bieżni bez FTMS.',
+      'Diagnostyka GATT z eksportem raportu.',
+      'Zapowiedzi głosowe po polsku, blokada wygaszania ekranu.',
+      'Historia treningów, profil i ustawienia w pamięci telefonu.',
+      'Działanie offline i instalacja na ekranie głównym.',
+    ],
+  },
+];
+
+export const currentEntry = () => CHANGELOG.find((e) => e.version === VERSION) ?? CHANGELOG[0];

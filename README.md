@@ -167,6 +167,7 @@ js/engine.js          maszyna stanów treningu, rampowanie, zapowiedzi
 js/speech.js          synteza mowy i blokada wygaszania ekranu
 js/storage.js         profil, historia, ustawienia (localStorage)
 js/trace.js           zapis techniczny treningu i eksport do pliku
+js/version.js         numer wersji i historia zmian
 js/ble/uuids.js       identyfikatory usług i charakterystyk
 js/ble/ftms.js        sterownik standardu FTMS
 js/ble/proprietary.js sterownik protokołów własnościowych + sniffer
@@ -195,6 +196,26 @@ ruszył — różnica między nimi to odliczanie konsoli bieżni.
 
 Przechowywane są trzy ostatnie treningi. Jeśli localStorage się zapełni,
 najstarszy zapis jest odrzucany, żeby nie zablokować zapisywania historii.
+
+## Wersjonowanie
+
+Numer wersji jest widoczny obok nazwy aplikacji w pasku górnym. Dotknięcie go
+otwiera historię zmian; ten sam widok jest dostępny z zakładki Profil.
+
+Jedynym źródłem prawdy jest [`js/version.js`](js/version.js) — stąd numer
+bierze nagłówek, historia zmian, nazwa pamięci podręcznej service workera
+oraz nagłówki raportu diagnostycznego i zapisu treningu. Przy analizie logu
+zawsze więc wiadomo, która wersja go wyprodukowała.
+
+Podnosząc wersję: zmień `VERSION` i dopisz wpis na początku `CHANGELOG`.
+Nic więcej — nazwa pamięci podręcznej wyliczy się sama, więc nowa wersja
+zastąpi starą bez ręcznego czyszczenia. Service worker jest rejestrowany jako
+moduł (`type: 'module'`), żeby mógł zaimportować numer wersji; sprawdzone, że
+Chrome przyjmuje taką zmianę typu nad już aktywnym workerem klasycznym.
+
+Po aktualizacji aplikacja pokazuje powiadomienie z numerem nowej wersji —
+bez tego, przy samoczynnej aktualizacji w tle, nie byłoby skąd wiedzieć,
+że coś się zmieniło.
 
 ## Znane ograniczenia
 

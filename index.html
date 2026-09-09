@@ -19,7 +19,7 @@
 </div>
 
 <header id="topbar">
-  <div class="brand">Zip<span>Run</span></div>
+  <button id="brand" class="brand">Zip<span>Run</span><em id="brand-ver">—</em></button>
   <button id="btn-connect" class="chip chip-action">Połącz bieżnię</button>
   <div id="conn-dot" class="dot" title="Brak połączenia"></div>
 </header>
@@ -210,6 +210,16 @@
   </div>
 </section>
 
+<!-- ========================= HISTORIA ZMIAN ========================= -->
+<section id="view-changelog" class="view">
+  <button class="back" id="cl-back">← Wróć</button>
+  <div class="hero">
+    <h1>Historia zmian</h1>
+    <p>Używasz wersji <b id="cl-current">—</b>.</p>
+  </div>
+  <div id="cl-list"></div>
+</section>
+
 <!-- ============================ PROFIL ============================ -->
 <section id="view-profile" class="view">
   <div class="hero">
@@ -261,6 +271,12 @@
       <div class="range-row"><input id="s-countdown" type="range" min="0" max="15" step="1"><b id="s-countdown-v"></b></div>
     </label>
     <button id="btn-test-voice" class="ghost">Sprawdź głos</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">O aplikacji</div>
+    <div class="kv">ZipRun <b id="about-ver">—</b><br><span id="about-title" class="hint"></span></div>
+    <div class="btn-row"><button id="btn-changelog" class="ghost">Historia zmian</button></div>
   </div>
 </section>
 

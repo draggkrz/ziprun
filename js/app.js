@@ -7,6 +7,7 @@ import { WorkoutEngine, STATE } from './engine.js';
 import { Speech, ScreenKeeper } from './speech.js';
 import { parseHex, KNOWN_NAMES } from './ble/uuids.js';
 import { Trace } from './trace.js';
+import { VERSION, CHANGELOG, currentEntry } from './version.js';
 import * as store from './storage.js';
 
 const $ = (id) => document.getElementById(id);
@@ -32,7 +33,11 @@ speech.enabled = settings.voice;
 
 // ---------------------------------------------------------------- nawigacja
 
+let currentView = 'plans';
+let prevView = 'plans';
+
 function goto(name) {
+  if (name !== currentView) { prevView = currentView; currentView = name; }
   els('.view').forEach((v) => v.classList.remove('active'));
   $('view-' + name)?.classList.add('active');
   els('.tab').forEach((t) => t.classList.toggle('active', t.dataset.goto === name));
@@ -51,6 +56,45 @@ function toast(msg, isError = false) {
   t.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 3800);
+}
+
+// ------------------------------------------------- wersja i historia zmian
+
+function renderVersion() {
+  const cur = currentEntry();
+  $('brand-ver').textContent = VERSION;
+  $('about-ver').textContent = VERSION;
+  $('about-title').textContent = cur.title + ' · ' + cur.date;
+  $('cl-current').textContent = VERSION;
+}
+
+function renderChangelog() {
+  $('cl-list').innerHTML = CHANGELOG.map((e) =>
+    '<div class="card">' +
+    '<div class="cl-head"><b>' + e.version + '</b>' +
+    (e.version === VERSION ? '<span class="cl-now">używana</span>' : '') +
+    '<span class="cl-date">' + e.date + '</span></div>' +
+    '<div class="cl-title">' + e.title + '</div>' +
+    '<ul class="cl-changes">' + e.changes.map((c) => '<li>' + c + '</li>').join('') + '</ul>' +
+    '</div>'
+  ).join('');
+}
+
+$('brand').addEventListener('click', () => { renderChangelog(); goto('changelog'); });
+$('btn-changelog').addEventListener('click', () => { renderChangelog(); goto('changelog'); });
+$('cl-back').addEventListener('click', () => goto(prevView === 'changelog' ? 'plans' : prevView));
+
+/**
+ * Aplikacja aktualizuje się sama w tle, więc bez tego użytkownik nie miałby
+ * skąd wiedzieć, że coś się zmieniło.
+ */
+function announceUpdate() {
+  const seen = settings.seenVersion;
+  if (seen === VERSION) return;
+  settings.seenVersion = VERSION;
+  store.saveSettings(settings);
+  if (!seen) return; // pierwsze uruchomienie - nie ma o czym informować
+  toast('Zaktualizowano do wersji ' + VERSION + '. Dotknij nazwy ZipRun, żeby zobaczyć zmiany.');
 }
 
 // ------------------------------------------------------------- lista planów
@@ -166,6 +210,7 @@ $('btn-start').addEventListener('click', async () => {
   runSaved = false;
   engine.autoControl = settings.autoControl && !plan.manual && tm.caps.speed;
   trace.start({
+    wersja: 'ZipRun ' + VERSION,
     plan: plan.name,
     urządzenie: tm.device?.name || '(niepołączone)',
     protokół: tm.driver?.name || '-',
@@ -592,6 +637,7 @@ const stamp = (iso = new Date().toISOString()) => iso.slice(0, 19).replace(/[:T]
 $('btn-export').addEventListener('click', () => {
   if (!tm.diagnostics) return toast('Najpierw uruchom diagnostykę.', true);
   const report = tm.diagnostics.toReport({
+    'Wersja aplikacji': 'ZipRun ' + VERSION,
     'Urządzenie': tm.device?.name || '(bez nazwy)',
     'Sterownik': tm.driver?.name || '-',
     'Możliwości': JSON.stringify(tm.caps),
@@ -639,9 +685,11 @@ $('btn-clear-log').addEventListener('click', () => { $('log').textContent = ''; 
 // ------------------------------------------------------------------- start
 
 if (!bleAvailable()) $('unsupported').classList.remove('hidden');
+renderVersion();
 renderPlans();
 renderProfile();
 updateInclineUi();
+announceUpdate();
 if (settings.lastDeviceName) $('btn-connect').textContent = 'Połącz: ' + settings.lastDeviceName;
 
 // Ostrzeżenie przed zamknięciem karty w trakcie treningu — pas by dalej chodził.
@@ -650,5 +698,6 @@ window.addEventListener('beforeunload', (e) => {
 });
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(() => { /* offline opcjonalny */ });
+  // type:'module' pozwala service workerowi zaimportować numer wersji
+  navigator.serviceWorker.register('sw.js', { type: 'module' }).catch(() => { /* offline opcjonalny */ });
 }
