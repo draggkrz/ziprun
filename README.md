@@ -66,6 +66,11 @@ i od razu dają adres HTTPS. Bez repozytorium i bez publikowania kodu źródłow
    rozmawiać) i *szybką* (utrzymasz ją około trzech minut). Wszystkie plany
    liczą się z tych dwóch liczb, więc zawyżone wartości dadzą plan nie do
    wykonania. Sprawdź też limity bezpieczeństwa.
+
+   Wiek ani masa ciała nie są potrzebne — prędkości od nich nie zależą.
+   Masa służy tylko awaryjnemu szacowaniu kalorii, gdy bieżnia nie podaje ich
+   sama, i jest przyjęta na stałe (80 kg). FitShow zachowuje się identycznie:
+   zmiana wagi, wieku i wzrostu nie wpływa tam na prędkości w trakcie treningu.
 2. **Bieżnia → Wybierz i połącz.** Aplikacja sama rozpozna, czy bieżnia mówi
    standardem FTMS, czy protokołem własnościowym.
 3. **Diagnostyka** (opis niżej) — jednorazowo, żeby potwierdzić protokół.

@@ -27,7 +27,6 @@ export const DEFAULT_SETTINGS = {
   voice: true,
   autoControl: true,
   countdown: 5,
-  rampStep: 0.5,
   keepAwake: true,
   lastDeviceName: '',
   seenVersion: '',

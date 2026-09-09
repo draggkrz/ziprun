@@ -457,8 +457,6 @@ function renderProfile() {
   set('p-walk', profile.walk); $('p-walk-v').textContent = profile.walk.toFixed(1).replace('.', ',') + ' km/h';
   set('p-cap', profile.maxSpeedCap); $('p-cap-v').textContent = profile.maxSpeedCap.toFixed(1).replace('.', ',') + ' km/h';
   set('p-inc', profile.maxInclineCap); $('p-inc-v').textContent = profile.maxInclineCap + ' %';
-  set('p-weight', profile.weightKg);
-  set('p-age', profile.age);
   $('s-voice').checked = settings.voice;
   $('s-auto').checked = settings.autoControl;
   $('s-awake').checked = settings.keepAwake;
@@ -493,15 +491,6 @@ bindRange('p-fast', 'fast');
 bindRange('p-walk', 'walk');
 bindRange('p-cap', 'maxSpeedCap');
 bindRange('p-inc', 'maxInclineCap', null, true);
-
-$('p-weight').addEventListener('change', (e) => {
-  profile.weightKg = parseInt(e.target.value, 10) || 80;
-  store.saveProfile(profile);
-});
-$('p-age').addEventListener('change', (e) => {
-  profile.age = parseInt(e.target.value, 10) || 40;
-  store.saveProfile(profile);
-});
 
 const bindSwitch = (id, key, after) => $(id).addEventListener('change', (e) => {
   settings[key] = e.target.checked;

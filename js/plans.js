@@ -16,9 +16,10 @@ export const DEFAULT_PROFILE = {
   fast: 11.0,      // tempo, które utrzymasz około 3 minuty
   maxSpeedCap: 12, // twardy limit bezpieczeństwa
   maxInclineCap: 0,
+  // Używane wyłącznie awaryjnie, gdy bieżnia nie raportuje kalorii. Nie ma
+  // pola w interfejsie, bo prędkości od masy nie zależą, a bieżnie z FTMS
+  // liczą kalorie same - formularz sugerowałby wpływ, którego nie ma.
   weightKg: 80,
-  age: 40,
-  restBetweenAnnounce: true,
 };
 
 /**

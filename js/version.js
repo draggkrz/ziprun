@@ -6,9 +6,19 @@
 //
 // Podnosząc wersję, dopisz wpis na początku CHANGELOG — kolejność malejąca.
 
-export const VERSION = '1.5.0';
+export const VERSION = '1.5.1';
 
 export const CHANGELOG = [
+  {
+    version: '1.5.1',
+    date: '2026-09-09',
+    title: 'Sprzątanie profilu',
+    changes: [
+      'Usunięte pola „Wiek" i „Masa ciała". Wiek nie był używany do niczego, a masa tylko awaryjnie, gdy bieżnia nie raportuje kalorii — Twoja raportuje je sama. Formularz sugerował wpływ na trening, którego nie miał.',
+      'Prędkości nigdy nie zależały od wieku ani wagi, tylko od trzech temp w profilu. Tak samo działa FitShow.',
+      'Usunięte dwie nieużywane wartości w ustawieniach wewnętrznych.',
+    ],
+  },
   {
     version: '1.5.0',
     date: '2026-09-09',
