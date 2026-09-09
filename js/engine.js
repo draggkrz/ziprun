@@ -290,7 +290,7 @@ export class WorkoutEngine {
   /** Korekta całego planu w górę lub w dół — przydatna, gdy plan jest za łatwy. */
   adjustSpeed(delta) {
     this.speedOffset = Math.round((this.speedOffset + delta) * 10) / 10;
-    this._msg('Korekta prędkości: ' + (this.speedOffset >= 0 ? '+' : '') + this.speedOffset.toFixed(1) + ' km/h');
+    this._msg('Korekta prędkości: ' + (this.speedOffset >= 0 ? '+' : '') + spoken(this.speedOffset) + ' km/h');
     this.applySegment(this.segment);
     return this.speedOffset;
   }

@@ -55,6 +55,34 @@ export function clearHistory() { write(KEY_HISTORY, []); }
 export const loadProtocol = () => read(KEY_PROTO, { driver: '', notes: '', templates: [] });
 export const saveProtocol = (p) => write(KEY_PROTO, p);
 
+// --- zapisy techniczne treningów ------------------------------------------
+
+const KEY_TRACES = 'ziprun.traces';
+const MAX_TRACES = 3;
+
+export function loadTraces() {
+  try { return JSON.parse(localStorage.getItem(KEY_TRACES) || '[]'); }
+  catch { return []; }
+}
+
+/**
+ * Trzymamy tylko trzy ostatnie zapisy. Jeden trening to kilkaset kilobajtów,
+ * a localStorage ma około pięciu megabajtów na całą aplikację - bez tego
+ * limitu historia treningów przestałaby się zapisywać po kilku tygodniach.
+ * Gdy zapis się nie mieści, odrzucamy najstarsze i próbujemy ponownie.
+ */
+export function addTrace(entry) {
+  let list = [entry, ...loadTraces()].slice(0, MAX_TRACES);
+  while (list.length) {
+    if (write(KEY_TRACES, list)) return list;
+    list = list.slice(0, -1); // brak miejsca - rezygnujemy z najstarszego
+  }
+  write(KEY_TRACES, []);
+  return [];
+}
+
+export function clearTraces() { write(KEY_TRACES, []); }
+
 export function historyStats(h = loadHistory()) {
   const done = h.filter((x) => x.completed);
   const km = h.reduce((a, x) => a + (x.distanceKm || 0), 0);

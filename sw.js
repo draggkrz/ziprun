@@ -2,7 +2,7 @@
 // (Bluetooth i tak nie wymaga sieci), ale po wejściu online zawsze bierze
 // najnowszą wersję plików.
 
-const CACHE = 'ziprun-v1';
+const CACHE = 'ziprun-v2';
 const ASSETS = [
   './',
   'index.html',
@@ -13,6 +13,7 @@ const ASSETS = [
   'js/engine.js',
   'js/speech.js',
   'js/storage.js',
+  'js/trace.js',
   'js/ble/uuids.js',
   'js/ble/ftms.js',
   'js/ble/proprietary.js',

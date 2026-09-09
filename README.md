@@ -166,6 +166,7 @@ js/plans.js           definicje planów i przeliczanie kotwic wysiłku
 js/engine.js          maszyna stanów treningu, rampowanie, zapowiedzi
 js/speech.js          synteza mowy i blokada wygaszania ekranu
 js/storage.js         profil, historia, ustawienia (localStorage)
+js/trace.js           zapis techniczny treningu i eksport do pliku
 js/ble/uuids.js       identyfikatory usług i charakterystyk
 js/ble/ftms.js        sterownik standardu FTMS
 js/ble/proprietary.js sterownik protokołów własnościowych + sniffer
@@ -175,6 +176,25 @@ sw.js                 service worker (działanie offline)
 tools/serve.js        lokalny serwer do testów
 tools/make-icons.js   generator ikon PWA
 ```
+
+## Zapis techniczny treningu
+
+Każdy trening jest rejestrowany: komendy wysłane do bieżni, jej odpowiedzi,
+przejścia odcinków, ostrzeżenia, rozłączenia oraz pomiary raz na sekundę
+(prędkość faktyczna i docelowa, dystans, kalorie, tętno, odcinek).
+
+Rejestrator jest czystym obserwatorem — podłącza się do zdarzeń, które bieżnia
+i silnik już emitują, więc nie może zepsuć samego treningu. Pomiary bierze
+z taktów silnika, nie ze zdarzeń BLE, dzięki czemu zapis powstaje także
+w trybie prowadzenia, gdy nic nie jest połączone.
+
+Eksport: przycisk w podsumowaniu treningu albo karta w zakładce Historia.
+Plik zawiera nagłówek, strumień zdarzeń i tabelę pomiarów w CSV. Czas jest
+podawany dwiema osiami: od naciśnięcia Start i od chwili, gdy pas faktycznie
+ruszył — różnica między nimi to odliczanie konsoli bieżni.
+
+Przechowywane są trzy ostatnie treningi. Jeśli localStorage się zapełni,
+najstarszy zapis jest odrzucany, żeby nie zablokować zapisywania historii.
 
 ## Znane ograniczenia
 

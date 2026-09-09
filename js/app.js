@@ -6,6 +6,7 @@ import { PLANS, planById, resolvePlan, anchorSpeed, fmtTime, KIND_LABEL, cooperV
 import { WorkoutEngine, STATE } from './engine.js';
 import { Speech, ScreenKeeper } from './speech.js';
 import { parseHex, KNOWN_NAMES } from './ble/uuids.js';
+import { Trace } from './trace.js';
 import * as store from './storage.js';
 
 const $ = (id) => document.getElementById(id);
@@ -16,6 +17,9 @@ const tm = new Treadmill();
 const speech = new Speech();
 const keeper = new ScreenKeeper();
 const engine = new WorkoutEngine(tm, speech);
+// Rejestrator podłącza się do zdarzeń, które i tak są emitowane - nie ingeruje
+// w silnik ani w warstwę BLE, więc nie może zepsuć samego treningu.
+const trace = new Trace().attach(tm, engine);
 
 let profile = store.loadProfile();
 let settings = store.loadSettings();
@@ -161,6 +165,14 @@ $('btn-start').addEventListener('click', async () => {
   engine.load(plan, profile);
   runSaved = false;
   engine.autoControl = settings.autoControl && !plan.manual && tm.caps.speed;
+  trace.start({
+    plan: plan.name,
+    urządzenie: tm.device?.name || '(niepołączone)',
+    protokół: tm.driver?.name || '-',
+    sterowanie: engine.autoControl ? 'automatyczne' : 'tryb prowadzenia',
+    profil: 'swobodnie ' + profile.easy + ', szybko ' + profile.fast +
+            ', limit ' + profile.maxSpeedCap + ' km/h',
+  });
   if (settings.keepAwake) keeper.acquire();
   speech.beep(660, 90); // odblokowuje audio przy pierwszym gescie
   goto('run');
@@ -248,6 +260,13 @@ engine.on('state', (s) => {
     runSaved = true;
     lastSummary = engine.summary();
     store.addHistory(lastSummary);
+    trace.stop();
+    store.addTrace({
+      date: lastSummary.date,
+      planName: lastSummary.planName,
+      completed: lastSummary.completed,
+      data: trace.toStored(),
+    });
     showSummary(lastSummary);
   }
 });
@@ -333,11 +352,53 @@ function renderHistory() {
         '<div class="dt">' + fmtTime(x.durationS || 0) + '</div></div></div>'
       ).join('')
     : '<p class="hint">Brak zapisanych treningów.</p>';
+  renderTraces();
 }
 
+function renderTraces() {
+  const list = store.loadTraces();
+  const box = $('trace-list');
+  if (!list.length) {
+    box.innerHTML = '<p class="hint">Brak zapisów — pojawią się po pierwszym treningu.</p>';
+    return;
+  }
+  box.innerHTML = list
+    .map((t, i) =>
+      '<button class="trace" data-trace="' + i + '">' +
+      '<span class="nm">' + (t.planName || '—') + (t.completed ? '' : ' · przerwany') + '</span>' +
+      '<span class="dt">' + new Date(t.date).toLocaleString('pl-PL') + ' · ' +
+      (t.data?.metrics?.length || 0) + ' pomiarów, ' + (t.data?.events?.length || 0) + ' zdarzeń</span>' +
+      '<span class="dl">Zapisz ↓</span></button>'
+    )
+    .join('');
+  els('#trace-list [data-trace]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const t = store.loadTraces()[+b.dataset.trace];
+      if (!t) return;
+      downloadText('ziprun-trening-' + stamp(t.date) + '.txt', Trace.fromStored(t.data).toText());
+      toast('Zapis pobrany.');
+    })
+  );
+}
+
+$('btn-export-trace').addEventListener('click', () => {
+  if (!trace.metrics.length && !trace.events.length) return toast('Brak zapisu do wyeksportowania.', true);
+  downloadText(
+    'ziprun-trening-' + stamp(lastSummary?.date) + '.txt',
+    trace.toText({
+      wynik: lastSummary
+        ? fmtTime(lastSummary.durationS) + ', ' + lastSummary.distanceKm.toFixed(2) + ' km' +
+          (lastSummary.completed ? ', ukończony' : ', przerwany')
+        : '-',
+    })
+  );
+  toast('Zapis techniczny pobrany.');
+});
+
 $('btn-clear-history').addEventListener('click', () => {
-  if (!confirm('Usunąć całą historię treningów?')) return;
+  if (!confirm('Usunąć całą historię treningów wraz z zapisami technicznymi?')) return;
   store.clearHistory();
+  store.clearTraces();
   renderHistory();
   toast('Historia wyczyszczona.');
 });
@@ -516,6 +577,18 @@ $('btn-diag').addEventListener('click', async () => {
 
 tm.on('frame', (f) => logLine('<- ' + (f.char || f.uuid || '').slice(4, 8) + '  ' + f.hex));
 
+/** Podaje tekst do zapisania jako plik. */
+function downloadText(filename, text) {
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+
+const stamp = (iso = new Date().toISOString()) => iso.slice(0, 19).replace(/[:T]/g, '-');
+
 $('btn-export').addEventListener('click', () => {
   if (!tm.diagnostics) return toast('Najpierw uruchom diagnostykę.', true);
   const report = tm.diagnostics.toReport({
@@ -523,12 +596,7 @@ $('btn-export').addEventListener('click', () => {
     'Sterownik': tm.driver?.name || '-',
     'Możliwości': JSON.stringify(tm.caps),
   });
-  const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'ziprun-diagnostyka-' + new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-') + '.txt';
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  downloadText('ziprun-diagnostyka-' + stamp() + '.txt', report);
 });
 
 els('[data-test]').forEach((b) =>
