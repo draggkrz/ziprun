@@ -6,9 +6,18 @@
 //
 // Podnosząc wersję, dopisz wpis na początku CHANGELOG — kolejność malejąca.
 
-export const VERSION = '1.4.0';
+export const VERSION = '1.5.0';
 
 export const CHANGELOG = [
+  {
+    version: '1.5.0',
+    date: '2026-09-09',
+    title: 'Plan spalania tłuszczu z FitShow',
+    changes: [
+      'Nowy plan „Spalanie tłuszczu 30 min" — odtworzony co do sekundy z aplikacji FitShow: pięć bloków biegowych 8–9 km/h przeplatanych marszem.',
+      'To jedyny plan z prędkościami wpisanymi wprost, a nie przeliczanymi z profilu. Korekta ±0,5 km/h w trakcie treningu działa na nim tak samo jak na pozostałych.',
+    ],
+  },
   {
     version: '1.4.0',
     date: '2026-09-09',

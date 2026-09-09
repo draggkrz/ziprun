@@ -150,11 +150,16 @@ byłoby udawaniem, że sprzęt potrafi coś, czego nie potrafi.
 
 ## Plany treningowe
 
-Czternaście planów, od marszobiegu po interwały norweskie 4×4. Prędkości nie
+Piętnaście planów, od marszobiegu po interwały norweskie 4×4. Prędkości nie
 są zapisane na sztywno — każdy plan przelicza się z Twojego profilu, więc rośnie
 razem z formą i nie trzeba go przepisywać.
 
 Poziomy: 1 — łatwe, 2 — średnie, 3 — mocne.
+
+Jeden plan jest wyjątkiem od skalowania: „Spalanie tłuszczu 30 min" to
+odtworzony co do sekundy plan „30 Minute Fat Burning Run" z aplikacji FitShow,
+z prędkościami wpisanymi wprost (3,5 / 8,0 / 9,0 / 5,0 / 4,5 km/h). Ręczna
+korekta ±0,5 km/h w trakcie treningu działa na nim normalnie.
 
 ## Struktura
 

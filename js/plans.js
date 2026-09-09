@@ -97,6 +97,28 @@ export const PLANS = [
     ],
   },
   {
+    id: 'fitshow-fat-30',
+    name: 'Spalanie tłuszczu 30 min',
+    focus: 'Redukcja / interwały',
+    level: 2,
+    desc: 'Plan odtworzony z aplikacji FitShow („30 Minute Fat Burning Run"). Pięć bloków biegowych 8–9 km/h przeplatanych marszem. Prędkości są tu wpisane wprost, a nie przeliczane z profilu — dokładnie takie, jakie ustawiała FitShow. Jeśli okażą się za łatwe albo za trudne, użyj w trakcie przycisków ±0,5 km/h; korekta przenosi się na wszystkie kolejne odcinki.',
+    segments: [
+      { t: M(3), s: 3.5, kind: 'warmup', label: 'Rozgrzewka' },
+      // Cztery pełne bloki po pięć minut, każdy zamknięty marszem.
+      ...rep(4, [
+        { t: M(1), s: 8.0, kind: 'work', label: 'Bieg' },
+        { t: M(2), s: 9.0, kind: 'work', label: 'Mocniej' },
+        { t: M(1), s: 8.0, kind: 'work', label: 'Bieg' },
+        { t: M(1), s: 5.0, kind: 'recovery', label: 'Marsz' },
+      ]),
+      // Piąty blok bez marszu na końcu — tak wychodzi równe trzydzieści minut.
+      { t: M(1), s: 8.0, kind: 'work', label: 'Bieg' },
+      { t: M(2), s: 9.0, kind: 'work', label: 'Mocniej' },
+      { t: M(1), s: 8.0, kind: 'work', label: 'Ostatni odcinek' },
+      { t: M(3), s: 4.5, kind: 'cooldown', label: 'Schłodzenie' },
+    ],
+  },
+  {
     id: 'walk-run-40',
     name: 'Marszobieg 40 min',
     focus: 'Redukcja / powrót po przerwie',
