@@ -2,4 +2,6 @@ node_modules/
 *.log
 .DS_Store
 Thumbs.db
-ziprun-diagnostyka-*.txt
+# Raporty diagnostyczne i zapisy treningów zostają lokalnie - repozytorium
+# jest publiczne, a te pliki opisują konkretne urządzenie i przebieg treningu.
+ziprun-*.txt
