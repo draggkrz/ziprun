@@ -14,7 +14,8 @@ export const CHANGELOG = [
     date: '2026-09-11',
     title: 'Tryb kompaktowy ekranu treningu',
     changes: [
-      'Nowy domyślny wygląd treningu: duże odliczanie odcinka i duża prędkość, pasek postępu całego treningu, jeden wiersz z dystansem, kaloriami i czasem do końca. Bez przycisków sterowania — prędkość i zatrzymanie obsługujesz z panelu bieżni.',
+      'Nowy domyślny wygląd treningu: duże odliczanie odcinka i duża prędkość, jeden wiersz z dystansem, kaloriami i czasem do końca. Bez przycisków sterowania — prędkość i zatrzymanie obsługujesz z panelu bieżni.',
+      'Pierścień ma teraz dwa obwody: pomarańczowy odlicza bieżący odcinek, zielony wypełnia się postępem całego treningu. Zastępuje to osobny pasek postępu.',
       'Pełny panel z korektami ±0,5 km/h, pauzą i przeskokiem odcinka jest nadal dostępny: przełącznik na ekranie treningu albo w Profilu.',
       'Nagłówek pokazuje numer odcinka, na przykład „odcinek 3 z 28”.',
       'Przycisk „Zakończ trening” zostaje w obu trybach — gdy zatrzymasz pas z konsoli, aplikacja wchodzi w pauzę i trzeba jej powiedzieć, że to koniec.',

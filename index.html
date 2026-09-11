@@ -75,9 +75,13 @@
   </div>
 
   <div class="ring-wrap">
+    <!-- Dwa pierścienie: wewnętrzny odlicza bieżący odcinek (ubywa),
+         zewnętrzny wypełnia się postępem całego treningu (przybywa). -->
     <svg id="ring" viewBox="0 0 200 200" aria-hidden="true">
-      <circle class="ring-bg" cx="100" cy="100" r="88"></circle>
-      <circle id="ring-fg" class="ring-fg" cx="100" cy="100" r="88"></circle>
+      <circle class="ring-total-bg" cx="100" cy="100" r="96"></circle>
+      <circle id="ring-total" class="ring-total" cx="100" cy="100" r="96"></circle>
+      <circle class="ring-bg" cx="100" cy="100" r="84"></circle>
+      <circle id="ring-fg" class="ring-fg" cx="100" cy="100" r="84"></circle>
     </svg>
     <div class="ring-center">
       <div id="run-segtime" class="segtime">0:00</div>
@@ -106,9 +110,8 @@
     <div class="tile"><div class="tv" id="run-pace">—</div><div class="tl">min/km</div></div>
   </div>
 
-  <!-- Pasek postępu, wiersz skrótowy i stopka należą do trybu kompaktowego;
-       w pełnym są ukryte, a ich rolę pełnią kafelki i przyciski sterowania. -->
-  <div id="run-progress" class="progress"><i></i></div>
+  <!-- Wiersz skrótowy i stopka należą do trybu kompaktowego; w pełnym są
+       ukryte, a ich rolę pełnią kafelki i przyciski sterowania. -->
   <div id="run-mini" class="mini"></div>
 
   <div id="run-next" class="next"></div>

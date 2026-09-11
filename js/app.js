@@ -227,7 +227,9 @@ $('btn-start').addEventListener('click', async () => {
 
 // ------------------------------------------------------------ ekran treningu
 
-const RING = 553;
+// Obwody obu pierscieni: 2*pi*84 i 2*pi*96.
+const RING = 528;
+const RING_TOTAL = 603;
 
 /**
  * Bieżnia bez sterowanej pochylni pokazywałaby stałe zero i miała dwa martwe
@@ -288,8 +290,10 @@ engine.on('tick', (d) => {
   // Elementy trybu kompaktowego. Pasek pokazuje postęp całego treningu,
   // wiersz pod nim zbiera liczby, które w pełnym trybie są w kafelkach.
   const total = engine.plan.totalSeconds;
-  $('run-progress').firstElementChild.style.width =
-    (total > 0 ? Math.min(100, (d.totalElapsed / total) * 100) : 0) + '%';
+  const postep = total > 0 ? Math.min(1, d.totalElapsed / total) : 0;
+  // Zewnetrzny pierscien przybywa wraz z postepem calego treningu, wewnetrzny
+  // ubywa razem z odcinkiem - dwie rozne informacje w jednym miejscu.
+  $('ring-total').style.strokeDashoffset = String(RING_TOTAL * (1 - postep));
   const kcal = d.metrics.kcal ?? Math.round(profile.weightKg * (d.distanceM / 1000) * 1.036);
   $('run-mini').innerHTML =
     '<b>' + (d.distanceM / 1000).toFixed(2).replace('.', ',') + '</b> km · ' +

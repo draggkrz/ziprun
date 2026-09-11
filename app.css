@@ -181,7 +181,15 @@ button { font-family: inherit; cursor: pointer; }
 .ring-bg { fill: none; stroke: var(--bg2); stroke-width: 12; }
 .ring-fg {
   fill: none; stroke: var(--accent); stroke-width: 12; stroke-linecap: round;
-  stroke-dasharray: 553; stroke-dashoffset: 0; transition: stroke-dashoffset .25s linear;
+  stroke-dasharray: 528; stroke-dashoffset: 0; transition: stroke-dashoffset .25s linear;
+}
+/* Zewnętrzny pierścień to inna informacja niż wewnętrzny, więc dostaje inny
+   kolor. Zielony czyta się jako „zrobione" i nie myli się z pomarańczowym
+   odliczaniem bieżącego odcinka. */
+.ring-total-bg { fill: none; stroke: var(--bg2); stroke-width: 4; }
+.ring-total {
+  fill: none; stroke: var(--ok); stroke-width: 4; stroke-linecap: round;
+  stroke-dasharray: 603; stroke-dashoffset: 603; transition: stroke-dashoffset .4s linear;
 }
 .ring-center {
   position: absolute; inset: 0; display: grid; place-content: center; text-align: center;
@@ -390,12 +398,6 @@ button { font-family: inherit; cursor: pointer; }
    Liczby, na które patrzy się w biegu — czas do końca odcinka i prędkość —
    dostają tyle miejsca, ile się da; reszta schodzi do jednego wiersza. */
 
-.progress {
-  height: 6px; border-radius: 999px; background: var(--bg2);
-  border: 1px solid var(--line); overflow: hidden; margin-bottom: 6px;
-}
-.progress i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .3s linear; }
-
 .mini {
   text-align: center; color: var(--dim); font-size: 14px;
   font-variant-numeric: tabular-nums; margin-bottom: 12px;
@@ -408,19 +410,17 @@ button { font-family: inherit; cursor: pointer; }
 /* Co znika w którym trybie */
 #view-run.compact .tiles,
 #view-run.compact .controls,
-#view-run.compact #c-stop,
-#view-run.compact #ring { display: none; }
+#view-run.compact #c-stop { display: none; }
 
-#view-run:not(.compact) .progress,
 #view-run:not(.compact) .mini,
 #view-run:not(.compact) .run-foot { display: none; }
 
-/* Pierścień zostaje tylko jako liczba — bez okręgu nie potrzebuje kotwiczenia. */
-#view-run.compact .ring-wrap { position: static; width: auto; margin: 10px 0 4px; }
-#view-run.compact .ring-center { position: static; display: block; }
-#view-run.compact .segtime { font-size: 76px; line-height: 1; }
-#view-run.compact .ring-sub { font-size: 11px; margin-bottom: 14px; }
-#view-run.compact .speed-actual { font-size: 82px; }
+/* Pierścień jest tu głównym elementem, więc dostaje więcej miejsca niż
+   w trybie pełnym — to on zastępuje pasek postępu. */
+#view-run.compact .ring-wrap { width: min(74vw, 300px); margin: 8px auto 10px; }
+#view-run.compact .segtime { font-size: 56px; line-height: 1; }
+#view-run.compact .ring-sub { font-size: 11px; }
+#view-run.compact .speed-actual { font-size: 68px; }
 #view-run.compact .speed-actual small { font-size: 20px; }
 #view-run.compact .speed-block { margin-bottom: 16px; }
 #view-run.compact .seg-label { font-size: 24px; }
@@ -429,11 +429,16 @@ button { font-family: inherit; cursor: pointer; }
    reszta w wąskim pasie pod spodem. */
 @media (orientation: landscape) and (max-height: 560px) {
   #view-run.compact.active { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  #view-run.compact .ring-wrap { grid-column: 1; grid-row: 2 / 4; margin: 0; }
-  #view-run.compact .segtime { font-size: 60px; }
+  /* Bez tego ograniczenia szerokość 74vw z układu pionowego dałaby tu koło
+     na pół ekranu i wypchnęła resztę poza widok. */
+  #view-run.compact .ring-wrap {
+    grid-column: 1; grid-row: 2 / 4; margin: 0 auto;
+    width: min(30vw, 158px);
+  }
+  #view-run.compact .segtime { font-size: 34px; }
+  #view-run.compact .ring-sub { font-size: 9px; }
   #view-run.compact .speed-block { grid-column: 2; grid-row: 1 / 4; margin: 0; align-self: center; }
   #view-run.compact .speed-actual { font-size: 64px; }
-  #view-run.compact .progress { grid-column: 1 / -1; grid-row: 4; }
   #view-run.compact .mini { grid-column: 1 / -1; grid-row: 5; margin-bottom: 6px; font-size: 13px; }
   #view-run.compact .next { grid-column: 1 / -1; grid-row: 6; }
   #view-run.compact .run-foot { grid-column: 1 / -1; grid-row: 7; margin-bottom: 0; }
