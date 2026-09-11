@@ -263,10 +263,13 @@ engine.on('tick', (d) => {
 
   const seg = d.segment;
   const kind = KIND_LABEL[seg.kind] || '';
-  const pozycja = (d.segIndex + 1) + ' z ' + engine.plan.segments.length;
+  const pozycja = (d.segIndex + 1) + '/' + engine.plan.segments.length;
   // Nie powtarzamy nagłówka, gdy nazwa odcinka jest tym samym słowem.
-  $('run-kind').textContent = [kind === seg.label ? '' : kind, 'odcinek ' + pozycja]
-    .filter(Boolean).join(' · ');
+  // Gdy rodzaj odcinka powtarza jego nazwę, pomijamy go — ale wtedy sama
+  // liczba byłaby zagadką, więc dostaje słowo wyjaśniające.
+  $('run-kind').textContent = kind === seg.label
+    ? 'odcinek ' + pozycja
+    : kind + ' · ' + pozycja;
   $('run-label').textContent = seg.label;
   $('run-segtime').textContent = fmtTime(d.segRemaining);
 
@@ -397,10 +400,24 @@ $('btn-end').addEventListener('click', endWorkout);
  * patrzy się w biegu; pełny dokłada kafelki i przyciski sterowania dla tych,
  * którzy wolą zmieniać prędkość z telefonu, a nie z panelu bieżni.
  */
+// Ikony przełącznika: kilka prostokątów = pełny panel, jeden = kompaktowy.
+// Rysowane, a nie brane ze znaków Unicode, żeby nie zależeć od czcionki telefonu.
+const IKONA_PELNY =
+  '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+  '<rect x="3" y="3" width="18" height="6.5" rx="1.5"/>' +
+  '<rect x="3" y="13" width="8" height="8" rx="1.5"/>' +
+  '<rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>';
+const IKONA_KOMPAKT =
+  '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+  '<rect x="3" y="3" width="18" height="18" rx="2.5"/></svg>';
+
 function applyRunMode() {
   const compact = settings.compact;
   $('view-run').classList.toggle('compact', compact);
-  $('btn-mode').textContent = compact ? 'Pełny panel' : 'Tryb kompaktowy';
+  const btn = $('btn-mode');
+  btn.innerHTML = compact ? IKONA_PELNY : IKONA_KOMPAKT;
+  btn.title = compact ? 'Pełny panel ze sterowaniem' : 'Tryb kompaktowy';
+  btn.setAttribute('aria-label', btn.title);
   const sw = $('s-compact');
   if (sw) sw.checked = compact;
 }

@@ -72,6 +72,11 @@
   <div class="run-head">
     <div id="run-kind" class="kind">—</div>
     <div id="run-label" class="seg-label">—</div>
+    <!-- Przełącznik siedzi w nagłówku, a nie w stopce, bo w trybie pełnym
+         stopka wypada poniżej krawędzi ekranu i trzeba by jej szukać.
+         Ikona zamiast napisu, żeby nie zabierał szerokości nagłówkowi. -->
+    <button id="btn-mode" class="mode-toggle" title="Zmień układ ekranu"
+            aria-label="Zmień układ ekranu"></button>
   </div>
 
   <div class="ring-wrap">
@@ -118,7 +123,6 @@
 
   <div class="run-foot">
     <button id="btn-end" class="ghost">Zakończ trening</button>
-    <button id="btn-mode" class="ghost">Pełny panel</button>
   </div>
 
   <div class="controls">

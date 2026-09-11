@@ -169,10 +169,26 @@ button { font-family: inherit; cursor: pointer; }
 .seg .tm { color: var(--dim); font-variant-numeric: tabular-nums; min-width: 46px; text-align: right; }
 
 /* ---------- ekran treningu ---------- */
-.run-head { text-align: center; margin: 4px 0 8px; }
+.run-head { position: relative; text-align: center; margin: 4px 0 8px; }
+/* Mały przełącznik trybu, zawsze w zasięgu — niezależnie od tego, jak długi
+   jest ekran w danym trybie. */
+.mode-toggle {
+  position: absolute; right: 0; top: 0;
+  width: 34px; height: 34px; padding: 0;
+  display: grid; place-items: center;
+  background: var(--bg2); border: 1px solid var(--line); color: var(--dim);
+  border-radius: 10px;
+}
+.mode-toggle svg {
+  width: 18px; height: 18px;
+  fill: none; stroke: currentColor; stroke-width: 1.8;
+}
+.mode-toggle:active { color: var(--accent); border-color: var(--accent); }
+/* Symetryczny odstep trzyma napis wysrodkowany, a jednoczesnie nie pozwala
+   mu wejsc pod przycisk trybu w prawym gornym rogu. */
 .kind {
   font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
-  color: var(--accent2); font-weight: 700;
+  color: var(--accent2); font-weight: 700; padding: 0 42px;
 }
 .seg-label { font-size: 21px; font-weight: 700; letter-spacing: -.02em; }
 
@@ -389,7 +405,7 @@ button { font-family: inherit; cursor: pointer; }
   .controls { grid-column: 2; grid-row: 4; gap: 6px; margin-bottom: 6px; }
   .ctl { padding: 9px 4px; font-size: 14px; }
   .ctl small { font-size: 9px; }
-  #c-stop { grid-column: 2; grid-row: 5; margin: 0 0 4px; padding: 11px; font-size: 15px; }
+  #c-stop { grid-column: 2; grid-row: 5; margin: 0 0 6px; padding: 11px; font-size: 15px; }
   .run-msg { grid-column: 2; grid-row: 6; font-size: 12px; min-height: 0; }
 }
 
@@ -412,7 +428,12 @@ button { font-family: inherit; cursor: pointer; }
 #view-run.compact .controls,
 #view-run.compact #c-stop { display: none; }
 
+/* Stopka zostaje w obu trybach — to w niej siedzi przełącznik, więc jej
+   ukrycie robiło z przejścia do pełnego panelu drogę w jedną stronę.
+   W pełnym trybie znika z niej tylko „Zakończ trening", bo dubluje
+   duży przycisk ZATRZYMAJ. */
 #view-run:not(.compact) .mini,
+#view-run:not(.compact) #btn-end { display: none; }
 #view-run:not(.compact) .run-foot { display: none; }
 
 /* Pierścień jest tu głównym elementem, więc dostaje więcej miejsca niż
