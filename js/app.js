@@ -640,8 +640,7 @@ $('s-countdown').addEventListener('input', (e) => {
  * podręczną, ale nie dotyka localStorage — profil, historia i zapisy
  * techniczne zostają.
  */
-$('btn-force-update').addEventListener('click', async () => {
-  if (!confirm('Pobrać wszystkie pliki aplikacji od nowa?\n\nProfil, historia treningów i zapisy techniczne zostaną zachowane.')) return;
+async function pobierzOdNowa() {
   try {
     for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister();
     for (const k of await caches.keys()) await caches.delete(k);
@@ -650,6 +649,11 @@ $('btn-force-update').addEventListener('click', async () => {
     return;
   }
   location.reload();
+}
+
+$('btn-force-update').addEventListener('click', () => {
+  if (!confirm('Pobrać wszystkie pliki aplikacji od nowa?\n\nProfil, historia treningów i zapisy techniczne zostaną zachowane.')) return;
+  pobierzOdNowa();
 });
 
 $('btn-test-voice').addEventListener('click', () => {
@@ -819,6 +823,29 @@ $('btn-raw').addEventListener('click', async () => {
 $('btn-clear-log').addEventListener('click', () => { $('log').textContent = ''; });
 
 // ------------------------------------------------------------------- start
+
+/**
+ * Gdyby pliki aplikacji pochodziły z różnych wydań, kod wywaliłby się dopiero
+ * w trakcie treningu komunikatem o braku elementu — tak właśnie objawiła się
+ * mieszanka 1.7.0 z 1.7.1. Lepiej wykryć to na starcie i od razu zaproponować
+ * naprawę, zamiast zostawiać użytkownika z zagadkowym błędem.
+ */
+function sprawdzSpojnoscPlikow() {
+  const wymagane = [
+    'run-kind', 'run-label', 'run-segtime', 'run-speed', 'run-target', 'run-mini',
+    'run-next', 'btn-mode', 'btn-end', 'c-stop', 'c-pause', 'ring-fg', 'ring-total',
+  ];
+  const brakuje = wymagane.filter((id) => !$(id));
+  if (!brakuje.length) return;
+  const ok = confirm(
+    'Pliki aplikacji pochodzą z różnych wydań i trening mógłby się przez to ' +
+    'wysypać.\n\nBrakuje: ' + brakuje.join(', ') +
+    '\n\nPobrać je od nowa? Profil i historia treningów zostaną zachowane.'
+  );
+  if (ok) pobierzOdNowa();
+}
+
+sprawdzSpojnoscPlikow();
 
 if (!bleAvailable()) $('unsupported').classList.remove('hidden');
 renderVersion();

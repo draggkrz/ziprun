@@ -10,9 +10,19 @@
 // typu "to jeszcze nie jest wypchnięte, więc dopiszę do poprzedniej wersji" —
 // taki wyjątek raz już doprowadził do sześciu commitów pod jednym numerem.
 
-export const VERSION = '1.7.2';
+export const VERSION = '1.7.3';
 
 export const CHANGELOG = [
+  {
+    version: '1.7.3',
+    date: '2026-09-11',
+    title: 'Koniec z mieszanką plików z dwóch wydań',
+    changes: [
+      'Błąd „Cannot set properties of null” przy starcie treningu brał się z tego, że telefon miał część plików z jednego wydania, a część z drugiego.',
+      'Pliki idą teraz zawsze z jednej pamięci podręcznej, wypełnianej przy instalacji w trybie wszystko-albo-nic i nazwanej numerem wersji. Wcześniej o źródle każdego pliku decydowało osobne żądanie, więc jedno nieudane pobranie mieszało wydania.',
+      'Aplikacja sprawdza teraz na starcie, czy pliki do siebie pasują, i sama proponuje pobranie od nowa, zamiast wywalać się dopiero w trakcie treningu.',
+    ],
+  },
   {
     version: '1.7.2',
     date: '2026-09-11',

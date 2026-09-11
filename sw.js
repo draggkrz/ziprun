@@ -1,9 +1,17 @@
-// Cache "najpierw sieć, w razie braku pamięć" — aplikacja działa bez internetu
-// (Bluetooth i tak nie wymaga sieci), ale po wejściu online zawsze bierze
-// najnowszą wersję plików.
+// Strategia „najpierw pamięć podręczna", z pamięcią nazwaną numerem wersji.
+//
+// Wcześniej było odwrotnie: najpierw sieć, a pamięć tylko awaryjnie. Brzmiało
+// bezpiecznie, ale decyzja zapadała OSOBNO DLA KAŻDEGO PLIKU — wystarczyło,
+// że jedno pobranie się nie powiodło, by aplikacja dostała ten jeden plik ze
+// starego wydania, a resztę z nowego. Taka mieszanka wywalała trening
+// komunikatem o braku elementu, którego nowszy kod już nie tworzy.
+//
+// Teraz wszystko idzie z jednej pamięci, wypełnianej przy instalacji w trybie
+// wszystko-albo-nic (addAll) i nazwanej numerem wersji. Zestaw plików jest
+// więc zawsze spójny i pochodzi z jednego wydania. Nowe pliki przychodzą przez
+// wymianę service workera, a nie przez podmianę pojedynczych żądań — to
+// działa, odkąd numer wersji siedzi w adresie skryptu.
 
-// Nazwa pamięci podręcznej bierze się z numeru wersji, więc podniesienie
-// wersji samo unieważnia starą pamięć - nie trzeba pamiętać o dwóch miejscach.
 import { VERSION } from './js/version.js';
 
 const CACHE = 'ziprun-' + VERSION;
@@ -30,27 +38,47 @@ const ASSETS = [
 
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting())
+    caches
+      .open(CACHE)
+      // cache:'reload' omija pamięć HTTP — inaczej przy instalacji nowej
+      // wersji mogłyby tu wpaść pliki poprzedniej, prosto z pamięci przeglądarki.
+      .then((c) => c.addAll(ASSETS.map((u) => new Request(u, { cache: 'reload' }))))
+      .then(() => self.skipWaiting())
   );
 });
 
 self.addEventListener('activate', (e) => {
   e.waitUntil(
-    caches.keys()
+    caches
+      .keys()
       .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
 
 self.addEventListener('fetch', (e) => {
-  if (e.request.method !== 'GET') return;
+  const req = e.request;
+  if (req.method !== 'GET') return;
+  if (new URL(req.url).origin !== self.location.origin) return;
+
   e.respondWith(
-    fetch(e.request)
-      .then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
-        return res;
-      })
-      .catch(() => caches.match(e.request).then((r) => r || caches.match('index.html')))
+    caches.open(CACHE).then(async (cache) => {
+      const zPamieci = await cache.match(req, { ignoreSearch: true });
+      if (zPamieci) return zPamieci;
+
+      try {
+        const zSieci = await fetch(req);
+        // Dokładamy tylko udane odpowiedzi i tylko w obrębie bieżącej wersji.
+        if (zSieci.ok) cache.put(req, zSieci.clone());
+        return zSieci;
+      } catch (err) {
+        // Wejście na dowolny adres aplikacji ma otworzyć aplikację, nawet bez sieci.
+        if (req.mode === 'navigate') {
+          const shell = await cache.match('index.html');
+          if (shell) return shell;
+        }
+        throw err;
+      }
+    })
   );
 });
