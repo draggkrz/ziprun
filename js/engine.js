@@ -38,6 +38,7 @@ export class WorkoutEngine {
     this._ramped = -1;
     this._lastMachineDist = null;
     this.distanceM = 0;
+    this.ramping = null;       // trwajaca zmiana predkosci przed odcinkiem
     this.samples = [];         // do wykresu i historii
     this._cb = { tick: [], segment: [], state: [], msg: [], ended: [] };
 
@@ -67,6 +68,7 @@ export class WorkoutEngine {
     this._ramped = -1;
     this._lastMachineDist = null;
     this.distanceM = 0;
+    this.ramping = null;
     this.samples = [];
     this.autoControl = !plan.manual && this.tm.caps.speed;
     this._setState(STATE.IDLE);
@@ -202,6 +204,7 @@ export class WorkoutEngine {
       metrics: this.tm.metrics || {},
       targetSpeed: this.targetSpeedFor(this.segment),
       targetIncline: this.targetInclineFor(this.segment),
+      ramping: this.ramping,
     };
   }
 
@@ -234,6 +237,9 @@ export class WorkoutEngine {
     const lead = Math.min(12, RAMP_LEAD_S + delta * 0.8);
     if (this.segRemaining > lead) return;
     this._ramped = this.segIndex;
+    // Ekran musi wiedzieć, że pas zmienia już prędkość, mimo że zegar odlicza
+    // wciąż poprzedni odcinek — inaczej pokazywałby coś innego, niż robi bieżnia.
+    this.ramping = { target, from: current, label: next.label, up: target > current };
     this.tm.rampTo(target, { step: 0.5, intervalMs: 650 }).catch((e) => this._msg('Rampa: ' + e.message));
   }
 
@@ -263,6 +269,7 @@ export class WorkoutEngine {
     if (this.segIndex >= this.plan.segments.length - 1) { this.finish(); return; }
     this.segIndex += 1;
     this.segElapsed = Math.max(0, over);
+    this.ramping = null;
     const seg = this.segment;
     this._emit('segment', { index: this.segIndex, segment: seg });
     const cue = seg.cue ? ' ' + seg.cue : '';
@@ -275,6 +282,7 @@ export class WorkoutEngine {
     this.segElapsed = this.segment.duration;
     this._announced = -1;
     this._ramped = -1;
+    this.ramping = null;
   }
 
   previousSegment() {
@@ -307,6 +315,7 @@ export class WorkoutEngine {
     this._setState(STATE.PAUSED);
     if (reason) this._msg(reason);
     this.tm.stopRamp();
+    this.ramping = null;
     if (this.autoControl) { try { await this.tm.pauseBelt(); } catch { /* pas może już stać */ } }
     this.speech?.say('Pauza');
   }

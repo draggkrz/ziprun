@@ -6,9 +6,20 @@
 //
 // Podnosząc wersję, dopisz wpis na początku CHANGELOG — kolejność malejąca.
 
-export const VERSION = '1.5.2';
+export const VERSION = '1.5.3';
 
 export const CHANGELOG = [
+  {
+    version: '1.5.3',
+    date: '2026-09-11',
+    title: 'Ekran nadąża za bieżnią',
+    changes: [
+      'Pas zmienia prędkość kilka sekund przed końcem odcinka, żeby interwał zaczynał się już na docelowym tempie — ale ekran o tym milczał i przez te sekundy pokazywał poprzedni etap.',
+      'W trakcie zmiany pojawia się teraz wyraźny pasek „Rozpędzam do…” albo „Zwalniam do…” z odliczaniem do nowego odcinka.',
+      'Prędkość docelowa pokazuje w tym czasie wartość, do której pas zmierza, zamiast celu kończącego się odcinka.',
+      'Samo zachowanie bieżni bez zmian — wyprzedzenie jest celowe i korzystne dla treningu.',
+    ],
+  },
   {
     version: '1.5.2',
     date: '2026-09-11',

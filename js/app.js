@@ -271,7 +271,9 @@ engine.on('tick', (d) => {
 
   const actual = d.metrics.speed;
   $('run-speed').textContent = (actual != null ? actual : d.targetSpeed).toFixed(1).replace('.', ',');
-  $('run-target').textContent = d.targetSpeed.toFixed(1).replace('.', ',');
+  // W trakcie rampy pokazujemy cel, do którego pas właśnie zmierza, a nie cel
+  // kończącego się odcinka — inaczej liczba kłóciłaby się z zachowaniem bieżni.
+  $('run-target').textContent = (d.ramping ? d.ramping.target : d.targetSpeed).toFixed(1).replace('.', ',');
   $('run-total').textContent = fmtTime(d.totalRemaining);
   $('run-dist').textContent = (d.distanceM / 1000).toFixed(2).replace('.', ',');
   $('run-incline').textContent = String(d.metrics.incline ?? d.targetIncline);
@@ -289,11 +291,24 @@ engine.on('tick', (d) => {
 
   $('run-mode').textContent = engine.autoControl ? '' : 'Tryb prowadzenia — prędkość ustawiasz ręcznie';
 
+  // Pas zmienia prędkość zanim zegar dojdzie do końca odcinka, żeby interwał
+  // zaczynał się już na docelowym tempie. Bez tego komunikatu ekran pokazywałby
+  // stary odcinek i stary cel, choć bieżnia robi już co innego.
   const next = engine.nextSegment;
-  $('run-next').innerHTML = next
-    ? 'Dalej: <b>' + next.label + '</b> · ' + engine.targetSpeedFor(next).toFixed(1).replace('.', ',') +
-      ' km/h · ' + fmtTime(next.duration)
-    : 'Ostatni odcinek';
+  const nextBox = $('run-next');
+  if (d.ramping) {
+    nextBox.classList.add('ramping');
+    nextBox.innerHTML =
+      '<b>' + (d.ramping.up ? 'Rozpędzam' : 'Zwalniam') + ' do ' +
+      d.ramping.target.toFixed(1).replace('.', ',') + ' km/h</b><br>' +
+      d.ramping.label + ' za ' + Math.max(1, Math.ceil(d.segRemaining)) + ' s';
+  } else {
+    nextBox.classList.remove('ramping');
+    nextBox.innerHTML = next
+      ? 'Dalej: <b>' + next.label + '</b> · ' + engine.targetSpeedFor(next).toFixed(1).replace('.', ',') +
+        ' km/h · ' + fmtTime(next.duration)
+      : 'Ostatni odcinek';
+  }
 });
 
 engine.on('state', (s) => {

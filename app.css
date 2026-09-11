@@ -316,3 +316,11 @@ button { font-family: inherit; cursor: pointer; }
 .cl-changes { margin: 0; padding-left: 18px; color: var(--dim); font-size: 14px; }
 .cl-changes li { margin-bottom: 6px; }
 .cl-changes li:last-child { margin-bottom: 0; }
+
+/* Trwa zmiana prędkości przed kolejnym odcinkiem — pas robi już co innego,
+   niż odlicza zegar, więc pasek musi to wyraźnie powiedzieć. */
+.next.ramping {
+  border-color: var(--accent); color: var(--accent2);
+  background: #2a1509;
+}
+.next.ramping b { color: var(--accent); }
