@@ -10,9 +10,20 @@
 // typu "to jeszcze nie jest wypchnięte, więc dopiszę do poprzedniej wersji" —
 // taki wyjątek raz już doprowadził do sześciu commitów pod jednym numerem.
 
-export const VERSION = '1.7.5';
+export const VERSION = '1.8.0';
 
 export const CHANGELOG = [
+  {
+    version: '1.8.0',
+    date: '2026-09-11',
+    title: 'Gest wstecz wraca do poprzedniego widoku',
+    changes: [
+      'Gest wstecz na telefonie zamykał aplikację zamiast cofać się o krok. Przełączanie widoków nie zapisywało się w historii przeglądarki, więc dla systemu istniał tylko jeden ekran.',
+      'Każde przejście jest teraz osobnym wpisem: z Profilu wracasz do Historii, stamtąd do szczegółów planu i dalej do listy.',
+      'Cofnięcie w trakcie treningu nie przerywa go — trening biegnie dalej, a gestem naprzód wracasz na jego ekran.',
+      'Po zakończeniu treningu cofanie nie wraca już do jego pustego ekranu, tylko do listy planów.',
+    ],
+  },
   {
     version: '1.7.5',
     date: '2026-09-11',
