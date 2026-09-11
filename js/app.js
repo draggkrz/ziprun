@@ -46,7 +46,22 @@ function goto(name) {
   if (name === 'profile') renderProfile();
 }
 
-els('[data-goto]').forEach((b) => b.addEventListener('click', () => goto(b.dataset.goto)));
+/** Czy trening trwa — wliczając pauzę i odliczanie przed startem. */
+const treningTrwa = () =>
+  engine.state === STATE.RUNNING || engine.state === STATE.PAUSED || engine.state === STATE.COUNTDOWN;
+
+els('[data-goto]').forEach((b) =>
+  b.addEventListener('click', () => {
+    // Bez tego zakładka Trening pokazywała pusty szkielet z kreskami zamiast
+    // nazwy odcinka, zerowym czasem i pustym paskiem — wyglądało jak awaria.
+    if (b.dataset.goto === 'run' && !treningTrwa()) {
+      toast('Nie ma aktywnego treningu — wybierz plan z listy.');
+      goto('plans');
+      return;
+    }
+    goto(b.dataset.goto);
+  })
+);
 
 let toastTimer;
 function toast(msg, isError = false) {

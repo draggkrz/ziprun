@@ -368,12 +368,22 @@ button { font-family: inherit; cursor: pointer; }
   body:has(#view-run.active) #tabs { display: none; }
   body:has(#view-run.active) main { padding: 8px 14px 0; }
 
+  /* W poziomie nagłówek siedzi w lewej kolumnie, więc ikona zakotwiczona
+     do niego lądowała na środku ekranu. Kotwiczymy ją do całego widoku,
+     żeby trafiła w prawy górny róg. */
+  #view-run.active { position: relative; }
+  #view-run.active .run-head { position: static; }
+  #view-run.active .mode-toggle { right: 0; top: 0; }
+
   #view-run.active {
     display: grid;
     grid-template-columns: minmax(0, 42%) minmax(0, 1fr);
     grid-template-rows: auto auto auto auto auto auto;
     column-gap: 16px;
-    align-content: start;
+    /* Wysrodkowanie zamiast wyrownania do gory - w poziomie tresci jest mniej
+       niz wysokosci i inaczej zostaje pusty pas pod spodem. */
+    align-content: center;
+    min-height: calc(100vh - 16px);
   }
 
   .run-head { grid-column: 1; grid-row: 1; margin: 0 0 2px; }
