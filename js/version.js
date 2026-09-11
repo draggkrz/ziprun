@@ -10,9 +10,20 @@
 // typu "to jeszcze nie jest wypchnięte, więc dopiszę do poprzedniej wersji" —
 // taki wyjątek raz już doprowadził do sześciu commitów pod jednym numerem.
 
-export const VERSION = '1.9.0';
+export const VERSION = '1.10.0';
 
 export const CHANGELOG = [
+  {
+    version: '1.10.0',
+    date: '2026-09-11',
+    title: 'Kopia danych: eksport i import',
+    changes: [
+      'W Profilu przybyła sekcja „Kopia danych”. Eksport zapisuje plik z profilem, ustawieniami, całą historią treningów i trzema ostatnimi zapisami technicznymi.',
+      'Import dopisuje treningi do istniejących zamiast je zastępować, a powtórki rozpoznaje po dacie i pomija — można więc scalić historię z dwóch telefonów.',
+      'Profil i ustawienia wczytują się tylko po osobnym potwierdzeniu, bo zastąpienia prędkości w profilu nie da się cofnąć.',
+      'Plik niebędący kopią ZipRun jest odrzucany z wyjaśnieniem, zamiast psuć dane.',
+    ],
+  },
   {
     version: '1.9.0',
     date: '2026-09-11',

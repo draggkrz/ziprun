@@ -297,6 +297,25 @@
   </div>
 
   <div class="card">
+    <div class="card-title">Kopia danych</div>
+    <p class="hint" style="margin-top:0">
+      Plik z profilem, ustawieniami, całą historią treningów i trzema ostatnimi
+      zapisami technicznymi. Przydaje się przy zmianie telefonu — i jako
+      zabezpieczenie, bo wyczyszczenie danych witryny w przeglądarce kasuje
+      wszystko bezpowrotnie.
+    </p>
+    <div class="btn-row">
+      <button id="btn-export-data" class="ghost">Eksportuj</button>
+      <button id="btn-import-data" class="ghost">Importuj</button>
+    </div>
+    <input id="import-file" type="file" accept="application/json,.json" hidden>
+    <p class="hint">
+      Import <b>dopisuje</b> treningi do istniejących, nie zastępuje ich.
+      Powtórki są rozpoznawane i pomijane.
+    </p>
+  </div>
+
+  <div class="card">
     <div class="card-title">O aplikacji</div>
     <div class="kv">ZipRun <b id="about-ver">—</b><br><span id="about-title" class="hint"></span></div>
     <div class="btn-row"><button id="btn-changelog" class="ghost">Historia zmian</button></div>

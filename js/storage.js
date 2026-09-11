@@ -86,6 +86,68 @@ export function addTrace(entry) {
 
 export function clearTraces() { write(KEY_TRACES, []); }
 
+// --- kopia danych ---------------------------------------------------------
+
+const FORMAT = 1;
+
+/** Wszystko, co aplikacja trzyma lokalnie, w jednym obiekcie. */
+export function eksportDanych() {
+  return {
+    aplikacja: 'ZipRun',
+    wersjaFormatu: FORMAT,
+    utworzono: new Date().toISOString(),
+    profil: loadProfile(),
+    ustawienia: loadSettings(),
+    historia: loadHistory(),
+    zapisy: loadTraces(),
+  };
+}
+
+export function czyPoprawnaKopia(obj) {
+  return !!obj && obj.aplikacja === 'ZipRun' && Array.isArray(obj.historia);
+}
+
+/**
+ * Scala kopię z tym, co już jest. Scalanie, a nie zastępowanie, bo import
+ * z drugiego urządzenia nie powinien kasować treningów z tego. Powtórki
+ * rozpoznajemy po dacie — jest to znacznik z dokładnością do milisekundy,
+ * więc dwa różne treningi nie mogą go dzielić.
+ */
+export function importujDane(obj, { zProfilem = false } = {}) {
+  if (!czyPoprawnaKopia(obj)) throw new Error('To nie jest kopia danych ZipRun.');
+
+  const obecna = loadHistory();
+  const znane = new Set(obecna.map((x) => x.date));
+  const nowe = obj.historia.filter((x) => x && x.date && !znane.has(x.date));
+  const scalona = [...obecna, ...nowe].sort((a, b) => new Date(b.date) - new Date(a.date));
+  write(KEY_HISTORY, scalona.slice(0, 200).map((e, i) => (i < 10 ? e : { ...e, samples: undefined })));
+
+  let zapisowDodanych = 0;
+  if (Array.isArray(obj.zapisy) && obj.zapisy.length) {
+    const obecneZ = loadTraces();
+    const znaneZ = new Set(obecneZ.map((x) => x.date));
+    const noweZ = obj.zapisy.filter((x) => x && x.date && !znaneZ.has(x.date));
+    zapisowDodanych = noweZ.length;
+    const scaloneZ = [...obecneZ, ...noweZ].sort((a, b) => new Date(b.date) - new Date(a.date));
+    // Ten sam limit co przy zapisie po treningu — trzy ostatnie.
+    let lista = scaloneZ.slice(0, MAX_TRACES);
+    while (lista.length && !write(KEY_TRACES, lista)) lista = lista.slice(0, -1);
+  }
+
+  if (zProfilem) {
+    if (obj.profil) write(KEY_PROFILE, { ...DEFAULT_PROFILE, ...obj.profil });
+    if (obj.ustawienia) write(KEY_SETTINGS, { ...DEFAULT_SETTINGS, ...obj.ustawienia });
+  }
+
+  return {
+    wPliku: obj.historia.length,
+    dodane: nowe.length,
+    pominiete: obj.historia.length - nowe.length,
+    zapisowDodanych,
+    profil: zProfilem,
+  };
+}
+
 export function historyStats(h = loadHistory()) {
   const done = h.filter((x) => x.completed);
   const km = h.reduce((a, x) => a + (x.distanceKm || 0), 0);

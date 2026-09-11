@@ -819,6 +819,71 @@ async function pobierzOdNowa() {
   location.reload();
 }
 
+// --------------------------------------------------------- kopia danych
+
+$('btn-export-data').addEventListener('click', () => {
+  const dane = store.eksportDanych();
+  downloadText(
+    'ziprun-kopia-' + stamp() + '.json',
+    JSON.stringify(dane, null, 2)
+  );
+  toast('Zapisano kopię: ' + dane.historia.length + ' ' +
+        plural(dane.historia.length, 'trening', 'treningi', 'treningów') + '.');
+});
+
+$('btn-import-data').addEventListener('click', () => $('import-file').click());
+
+$('import-file').addEventListener('change', async (e) => {
+  const plik = e.target.files?.[0];
+  // Reset pola, żeby dało się wczytać ten sam plik drugi raz.
+  e.target.value = '';
+  if (!plik) return;
+
+  let dane;
+  try {
+    dane = JSON.parse(await plik.text());
+  } catch {
+    toast('Nie udało się odczytać pliku — to nie jest poprawny JSON.', true);
+    return;
+  }
+  if (!store.czyPoprawnaKopia(dane)) {
+    toast('To nie wygląda na kopię danych ZipRun.', true);
+    return;
+  }
+
+  const kiedy = dane.utworzono ? new Date(dane.utworzono).toLocaleString('pl-PL') : 'nieznana data';
+  const ile = dane.historia.length;
+  if (!confirm(
+    'Kopia z ' + kiedy + ' zawiera ' + ile + ' ' +
+    plural(ile, 'trening', 'treningi', 'treningów') + '.\n\n' +
+    'Treningi zostaną dopisane do obecnej historii; powtórki są pomijane.'
+  )) return;
+
+  // Profil i ustawienia to sprawa tego urządzenia, więc pytamy osobno —
+  // nadpisania prędkości w profilu nie da się cofnąć.
+  const zProfilem = confirm(
+    'Wczytać też profil i ustawienia z kopii?\n\n' +
+    'Zastąpią obecne — tego nie da się cofnąć.\n' +
+    'Anuluj, żeby zaimportować wyłącznie treningi.'
+  );
+
+  try {
+    const w = store.importujDane(dane, { zProfilem });
+    if (zProfilem) { profile = store.loadProfile(); settings = store.loadSettings(); }
+    speech.enabled = settings.voice;
+    renderProfile();
+    renderPlans();
+    updateInclineUi();
+    applyRunMode();
+    renderHistory();
+    toast('Dodano ' + w.dodane + ' z ' + w.wPliku + ' ' +
+          plural(w.wPliku, 'treningu', 'treningów', 'treningów') +
+          (w.pominiete ? ' (pominięto powtórek: ' + w.pominiete + ')' : '') + '.');
+  } catch (err) {
+    toast('Import nieudany: ' + err.message, true);
+  }
+});
+
 $('btn-force-update').addEventListener('click', () => {
   if (!confirm('Pobrać wszystkie pliki aplikacji od nowa?\n\nProfil, historia treningów i zapisy techniczne zostaną zachowane.')) return;
   pobierzOdNowa();
