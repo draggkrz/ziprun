@@ -428,21 +428,37 @@ button { font-family: inherit; cursor: pointer; }
 /* Tryb kompaktowy w orientacji poziomej: czas po lewej, prędkość po prawej,
    reszta w wąskim pasie pod spodem. */
 @media (orientation: landscape) and (max-height: 560px) {
-  #view-run.compact.active { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  /* Czysty podział: po lewej wyłącznie pierścień z nazwą odcinka, po prawej
+     wszystko pozostałe. Wcześniej wiersz skrótowy i przyciski rozciągały się
+     pod obiema kolumnami, przez co ekran rozpadał się na trzy strefy. */
+  #view-run.compact.active {
+    grid-template-columns: minmax(0, 40%) minmax(0, 1fr);
+    align-items: center;
+    /* Treści jest tu mało, więc bez wyśrodkowania cały ekran wisiałby u góry
+       z pustym pasem pod spodem. */
+    align-content: center;
+    min-height: calc(100vh - 16px);
+  }
   /* Bez tego ograniczenia szerokość 74vw z układu pionowego dałaby tu koło
      na pół ekranu i wypchnęła resztę poza widok. */
+  /* Pierścień zajmuje całą lewą kolumnę pod nazwą odcinka. Bez ograniczenia
+     szerokości wziąłby wartość z układu pionowego i zająłby pół ekranu. */
+  /* Pierścień rozpina się przez wiersze prawej kolumny bez ostatniego,
+     który trzyma komunikaty. Gdyby obejmował i ten, cała nadwyżka wysokości
+     wpadałaby w pusty wiersz, a prawa kolumna zbijała się u góry. */
   #view-run.compact .ring-wrap {
-    grid-column: 1; grid-row: 2 / 4; margin: 0 auto;
-    width: min(30vw, 158px);
+    grid-column: 1; grid-row: 2 / 5; margin: 0 auto;
+    width: min(42vw, 232px); align-self: center;
   }
-  #view-run.compact .segtime { font-size: 34px; }
+  #view-run.compact .segtime { font-size: 46px; }
   #view-run.compact .ring-sub { font-size: 9px; }
-  #view-run.compact .speed-block { grid-column: 2; grid-row: 1 / 4; margin: 0; align-self: center; }
-  #view-run.compact .speed-actual { font-size: 64px; }
-  #view-run.compact .mini { grid-column: 1 / -1; grid-row: 5; margin-bottom: 6px; font-size: 13px; }
-  #view-run.compact .next { grid-column: 1 / -1; grid-row: 6; }
-  #view-run.compact .run-foot { grid-column: 1 / -1; grid-row: 7; margin-bottom: 0; }
-  #view-run.compact .run-msg { grid-column: 1 / -1; grid-row: 8; }
+
+  #view-run.compact .speed-block { grid-column: 2; grid-row: 1; margin: 0 0 8px; }
+  #view-run.compact .speed-actual { font-size: 56px; }
+  #view-run.compact .mini { grid-column: 2; grid-row: 2; margin-bottom: 8px; font-size: 13px; }
+  #view-run.compact .next { grid-column: 2; grid-row: 3; }
+  #view-run.compact .run-foot { grid-column: 2; grid-row: 4; margin-bottom: 0; }
+  #view-run.compact .run-msg { grid-column: 2; grid-row: 5; }
 }
 
 /* W pionie tryb kompaktowy ma mało elementów, więc bez tego dolna trzecia
