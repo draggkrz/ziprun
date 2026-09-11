@@ -298,22 +298,47 @@ engine.on('tick', (d) => {
 
 engine.on('state', (s) => {
   $('c-pause').textContent = s === STATE.PAUSED ? 'Wznów' : 'Pauza';
-  if (s === STATE.FINISHED || s === STATE.ABORTED) {
-    keeper.release();
-    // Zabezpieczenie przed dwukrotnym zapisem tego samego treningu.
-    if (runSaved) return;
-    runSaved = true;
-    lastSummary = engine.summary();
-    store.addHistory(lastSummary);
-    trace.stop();
-    store.addTrace({
-      date: lastSummary.date,
-      planName: lastSummary.planName,
-      completed: lastSummary.completed,
-      data: trace.toStored(),
-    });
-    showSummary(lastSummary);
+  if (s === STATE.FINISHED || s === STATE.ABORTED) keeper.release();
+});
+
+/**
+ * Czeka, aż bieżnia zwolni do zera. Hamowanie trwa tym dłużej, im szybciej
+ * biegłeś (około pół km/h na sekundę), więc sztywne opóźnienie albo ucinałoby
+ * zapis, albo kazało czekać bez potrzeby. Bez połączenia kończy od razu.
+ */
+async function waitForBeltStop(maxS = 30) {
+  const t0 = Date.now();
+  while (Date.now() - t0 < maxS * 1000) {
+    if ((tm.metrics?.speed ?? 0) <= 0.1) break;
+    await new Promise((r) => setTimeout(r, 500));
   }
+  // Chwila zapasu na potwierdzenie statusu z bieżni.
+  await new Promise((r) => setTimeout(r, 800));
+}
+
+/**
+ * "ended" leci dopiero po wysłaniu komendy zatrzymania pasa — inaczej
+ * najważniejszy moment treningu wypadałby poza zapisem technicznym.
+ */
+engine.on('ended', async (sum) => {
+  // Zabezpieczenie przed dwukrotnym zapisem tego samego treningu.
+  if (runSaved) return;
+  runSaved = true;
+  lastSummary = sum;
+  store.addHistory(sum);
+  showSummary(sum);
+
+  // Rejestrator dopisuje do chwili, aż pas faktycznie stanie — zamiast
+  // zgadywać czas hamowania, który zależy od prędkości końcowej. Podsumowanie
+  // jest już na ekranie, więc to czekanie niczego nie blokuje.
+  await waitForBeltStop();
+  trace.stop();
+  store.addTrace({
+    date: sum.date,
+    planName: sum.planName,
+    completed: sum.completed,
+    data: trace.toStored(),
+  });
 });
 
 engine.on('msg', (m) => { $('run-msg').textContent = m; toast(m); });

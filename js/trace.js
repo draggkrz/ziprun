@@ -8,6 +8,8 @@
 // segmentów, ostrzeżenia) oraz przebieg pomiarów. Po treningu wszystko można
 // wyeksportować do pliku tekstowego.
 
+import { STATE } from './engine.js';
+
 const CAP = 20000;          // twardy limit wpisów, żeby nie zjeść pamięci
 const METRIC_MIN_GAP_MS = 900; // pomiary rzadziej niż raz na sekundę nie mają sensu
 
@@ -90,6 +92,23 @@ export class Trace {
         segment: d.segment.label,
       });
     });
+    // Poza taktami silnika — przed startem i po zakończeniu — nikt inny nie
+    // zapisze pomiarów, a właśnie wtedy widać, czy pas faktycznie zwolnił
+    // do zera. Bieżnia hamuje kilka sekund po komendzie zatrzymania.
+    treadmill.on('data', (m) => {
+      if (engine.state === STATE.RUNNING) return;
+      this.metric({
+        workout: null,
+        speed: m.speed ?? null,
+        target: null,
+        distance: m.distance ?? null,
+        kcal: m.kcal ?? null,
+        hr: m.hr || null,
+        incline: m.incline ?? null,
+        segment: engine.state === STATE.IDLE ? '(przed startem)' : '(po treningu)',
+      });
+    });
+
     engine.on('state', (s) => this.add('trening', 'stan: ' + s));
     engine.on('segment', (e) => this.add('segment', '#' + (e.index + 1) + ' ' + e.segment.label +
       ' → ' + e.segment.speed.toFixed(1) + ' km/h, ' + e.segment.duration + ' s'));

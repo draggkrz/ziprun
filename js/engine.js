@@ -39,7 +39,7 @@ export class WorkoutEngine {
     this._lastMachineDist = null;
     this.distanceM = 0;
     this.samples = [];         // do wykresu i historii
-    this._cb = { tick: [], segment: [], state: [], msg: [] };
+    this._cb = { tick: [], segment: [], state: [], msg: [], ended: [] };
 
     this.tm.on('status', (s) => {
       // Kluczyk bezpieczeństwa wyjęty albo użytkownik zatrzymał pas z konsoli.
@@ -330,7 +330,11 @@ export class WorkoutEngine {
     this._msg(reason);
     if (this.autoControl) { try { await this.tm.stopBelt(); } catch { /* ignoruj */ } }
     this.speech?.say(reason, { priority: true });
-    return this.summary();
+    const s = this.summary();
+    // Zdarzenie "ended" leci dopiero po wysłaniu komendy zatrzymania, żeby
+    // moment zatrzymania pasa zdążył trafić do zapisu technicznego.
+    this._emit('ended', s);
+    return s;
   }
 
   async finish() {
@@ -339,6 +343,7 @@ export class WorkoutEngine {
     this._setState(STATE.FINISHED);
     if (this.autoControl) { try { await this.tm.stopBelt(); } catch { /* ignoruj */ } }
     const s = this.summary();
+    this._emit('ended', s);
     this.speech?.say(
       'Trening ukończony. Czas ' + fmtTime(s.durationS) + ', dystans ' +
       s.distanceKm.toFixed(2).replace('.', ',') + ' kilometra. Dobra robota.',

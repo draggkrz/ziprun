@@ -6,9 +6,18 @@
 //
 // Podnosząc wersję, dopisz wpis na początku CHANGELOG — kolejność malejąca.
 
-export const VERSION = '1.5.1';
+export const VERSION = '1.5.2';
 
 export const CHANGELOG = [
+  {
+    version: '1.5.2',
+    date: '2026-09-11',
+    title: 'Zapis obejmuje zatrzymanie pasa',
+    changes: [
+      'Zapis techniczny kończył się, zanim aplikacja zdążyła wysłać bieżni komendę zatrzymania — w logu z prawdziwego treningu ostatni pomiar pokazywał jadący pas, a potwierdzenia zatrzymania w ogóle nie było.',
+      'Rejestrator jest teraz zamykany dopiero po wysłaniu komendy i czeka, aż pas faktycznie zwolni do zera — w zapisie widać całe hamowanie i potwierdzenie z bieżni.',
+    ],
+  },
   {
     version: '1.5.1',
     date: '2026-09-09',
