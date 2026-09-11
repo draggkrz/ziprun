@@ -39,6 +39,7 @@ export class WorkoutEngine {
     this._lastMachineDist = null;
     this.distanceM = 0;
     this.ramping = null;       // trwajaca zmiana predkosci przed odcinkiem
+    this._lastSampleBucket = -1;
     this.samples = [];         // do wykresu i historii
     this._cb = { tick: [], segment: [], state: [], msg: [], ended: [] };
 
@@ -69,6 +70,7 @@ export class WorkoutEngine {
     this._lastMachineDist = null;
     this.distanceM = 0;
     this.ramping = null;
+    this._lastSampleBucket = -1;
     this.samples = [];
     this.autoControl = !plan.manual && this.tm.caps.speed;
     this._setState(STATE.IDLE);
@@ -174,7 +176,12 @@ export class WorkoutEngine {
       this.distanceM = (this.distanceM ?? 0) + ((m.speed ?? this.targetSpeedFor(this.segment)) * 1000 / 3600) * dt;
     }
 
-    if (Math.floor(this.totalElapsed) % 5 === 0) {
+    // Kubełkujemy co pięć sekund. Warunek na reszcie z dzielenia był prawdziwy
+    // przez całą sekundę, czyli cztery takty — próbek wychodziło czterokrotnie
+    // za dużo, z powtórzonymi znacznikami czasu.
+    const bucket = Math.floor(this.totalElapsed / 5);
+    if (bucket !== this._lastSampleBucket) {
+      this._lastSampleBucket = bucket;
       this.samples.push({
         t: Math.round(this.totalElapsed),
         target: this.targetSpeedFor(this.segment),

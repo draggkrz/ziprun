@@ -140,7 +140,12 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 /* ---------- wykres profilu ---------- */
-.chart { display: flex; align-items: flex-end; gap: 1px; height: 96px; margin-bottom: 8px; }
+/* overflow: hidden to zabezpieczenie - zaden wykres nie ma prawa wyjsc poza karte,
+   nawet gdyby ktos podal wiecej slupkow, niz miesci sie pikseli. */
+.chart {
+  display: flex; align-items: flex-end; gap: 1px; height: 96px;
+  margin-bottom: 8px; overflow: hidden;
+}
 .chart .bar { flex: 1 1 0; min-width: 1px; border-radius: 2px 2px 0 0; background: var(--work); }
 .chart .bar.warmup { background: var(--warmup); }
 .chart .bar.recovery { background: var(--recovery); }

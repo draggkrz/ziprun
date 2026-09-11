@@ -375,6 +375,23 @@ $('c-stop').addEventListener('click', async () => {
 
 // ------------------------------------------------------------ podsumowanie
 
+/**
+ * Półgodzinny trening daje ponad trzysta próbek, a w karcie mieści się około
+ * stu dwudziestu słupków — flexbox nie ściśnie ich poniżej piksela, więc bez
+ * uśrednienia wykres wylewał się poza ekran. Kubełkujemy do stałej liczby
+ * słupków, zachowując kształt przebiegu.
+ */
+export function downsample(values, maxBars = 120) {
+  if (values.length <= maxBars) return values;
+  const size = values.length / maxBars;
+  return Array.from({ length: maxBars }, (_, i) => {
+    const from = Math.floor(i * size);
+    const to = Math.max(from + 1, Math.floor((i + 1) * size));
+    const bucket = values.slice(from, to).filter((v) => v != null);
+    return bucket.length ? bucket.reduce((a, b) => a + b, 0) / bucket.length : 0;
+  });
+}
+
 function showSummary(s) {
   $('sum-title').textContent = s.completed ? 'Trening ukończony' : 'Trening przerwany';
   $('sum-plan').textContent = s.planName + ' · ' + new Date(s.date).toLocaleString('pl-PL');
@@ -386,12 +403,10 @@ function showSummary(s) {
     ...(s.avgHr ? [['tv', String(s.avgHr), 'średni puls'], ['tv', String(s.maxHr), 'maks. puls']] : []),
   ].map(([, v, l]) => '<div class="tile"><div class="tv">' + v + '</div><div class="tl">' + l + '</div></div>').join('');
 
-  const max = Math.max(...s.samples.map((x) => x.actual ?? x.target ?? 0), 1);
-  $('sum-chart').innerHTML = s.samples
-    .map((x) => {
-      const v = x.actual ?? x.target ?? 0;
-      return '<div class="bar" style="height:' + Math.max(3, (v / max) * 100) + '%"></div>';
-    })
+  const values = downsample(s.samples.map((x) => x.actual ?? x.target ?? 0));
+  const max = Math.max(...values, 1);
+  $('sum-chart').innerHTML = values
+    .map((v) => '<div class="bar" style="height:' + Math.max(3, (v / max) * 100) + '%"></div>')
     .join('');
 
   const extra = $('sum-extra');

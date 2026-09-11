@@ -6,9 +6,19 @@
 //
 // Podnosząc wersję, dopisz wpis na początku CHANGELOG — kolejność malejąca.
 
-export const VERSION = '1.5.3';
+export const VERSION = '1.5.4';
 
 export const CHANGELOG = [
+  {
+    version: '1.5.4',
+    date: '2026-09-11',
+    title: 'Poprawiony wykres w podsumowaniu',
+    changes: [
+      'Przebieg prędkości wychodził poza kartę i uciekał za krawędź ekranu. Półgodzinny trening dawał ponad tysiąc słupków, a mieści się ich około stu dwudziestu.',
+      'Przy okazji wyszło, że silnik zbierał czterokrotnie za dużo próbek — po cztery na każdy pięciosekundowy odcinek, z powtórzonymi znacznikami czasu. Teraz jedna próbka co pięć sekund, zgodnie z zamysłem.',
+      'Wykres uśrednia próbki do liczby słupków, która zmieści się w karcie, zachowując kształt przebiegu.',
+    ],
+  },
   {
     version: '1.5.3',
     date: '2026-09-11',
