@@ -94,6 +94,13 @@
     </div>
   </div>
 
+  <!-- Wszystko poza pierścieniem i nagłówkiem siedzi w jednym kontenerze.
+       W pionie jest on przezroczysty dla układu (display: contents), w poziomie
+       staje się prawą kolumną wyśrodkowaną w pionie jako całość — inaczej jego
+       elementy byłyby osobnymi wierszami siatki i rozjeżdżały się pionowo,
+       rozciągane wysokością pierścienia obok. -->
+  <div class="run-side">
+
   <div class="speed-block">
     <div class="speed-actual">
       <span id="run-speed">0.0</span><small>km/h</small>
@@ -102,7 +109,6 @@
       cel <b id="run-target">0.0</b> km/h
       <span id="run-offset" class="offset hidden"></span>
     </div>
-    <div id="run-mode" class="mode"></div>
   </div>
 
   <div class="tiles">
@@ -135,6 +141,8 @@
   </div>
   <button id="c-stop" class="danger big">ZATRZYMAJ</button>
   <div id="run-msg" class="run-msg"></div>
+
+  </div><!-- /run-side -->
 </section>
 
 <!-- ========================= PODSUMOWANIE ========================= -->

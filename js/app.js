@@ -233,6 +233,9 @@ $('btn-start').addEventListener('click', async () => {
     profil: 'swobodnie ' + profile.easy + ', szybko ' + profile.fast +
             ', limit ' + profile.maxSpeedCap + ' km/h',
   });
+  // Informacja o trybie prowadzenia raz, na starcie - jako stały napis na
+  // ekranie tylko zaśmiecała widok przez cały trening.
+  if (!engine.autoControl) toast('Tryb prowadzenia — prędkość ustawiasz sam na bieżni.');
   if (settings.keepAwake) keeper.acquire();
   speech.beep(660, 90); // odblokowuje audio przy pierwszym gescie
   goto('run');
@@ -324,7 +327,6 @@ engine.on('tick', (d) => {
     off.classList.remove('hidden');
   } else off.classList.add('hidden');
 
-  $('run-mode').textContent = engine.autoControl ? '' : 'Tryb prowadzenia — prędkość ustawiasz ręcznie';
 
   // Pas zmienia prędkość zanim zegar dojdzie do końca odcinka, żeby interwał
   // zaczynał się już na docelowym tempie. Bez tego komunikatu ekran pokazywałby

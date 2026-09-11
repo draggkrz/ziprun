@@ -378,23 +378,34 @@ button { font-family: inherit; cursor: pointer; }
   #view-run.active {
     display: grid;
     grid-template-columns: minmax(0, 42%) minmax(0, 1fr);
-    grid-template-rows: auto auto auto auto auto auto;
+    grid-template-rows: auto 1fr;
     column-gap: 16px;
-    /* Wysrodkowanie zamiast wyrownania do gory - w poziomie tresci jest mniej
-       niz wysokosci i inaczej zostaje pusty pas pod spodem. */
-    align-content: center;
-    min-height: calc(100vh - 16px);
+    height: calc(100vh - 16px);
   }
 
-  .run-head { grid-column: 1; grid-row: 1; margin: 0 0 2px; }
+  /* Prawa kolumna jako jeden blok wyśrodkowany w pionie. Gdy jej elementy
+     były osobnymi wierszami siatki, rozciągała je wysokość pierścienia obok
+     i odstępy między nimi robiły się ogromne. */
+  /* Selektor celowo bardziej swoisty niż bazowe .run-side { display: contents },
+     które stoi w pliku niżej i inaczej by tę regułę nadpisało. */
+  /* Ten sam wiersz co pierścień, żeby obie kolumny centrowały się względem
+     tego samego pasa — inaczej prawa liczy środek z całej wysokości, lewa
+     tylko spod nagłówka, i układ wychodzi przekrzywiony. */
+  #view-run.active .run-side {
+    grid-column: 2; grid-row: 2;
+    display: flex; flex-direction: column; justify-content: center;
+    min-height: 0;
+  }
+
+  .run-head { grid-column: 1; grid-row: 1; margin: 0; align-self: end; }
   .seg-label { font-size: 18px; }
   .kind { font-size: 10px; }
 
-  .ring-wrap { grid-column: 1; grid-row: 2 / 7; width: min(31vw, 176px); margin: 2px auto 0; align-self: start; }
+  .ring-wrap { grid-column: 1; grid-row: 2; width: min(34vw, 196px); margin: 0 auto; align-self: center; }
   .segtime { font-size: 34px; }
   .ring-sub { font-size: 9px; }
 
-  .speed-block { grid-column: 2; grid-row: 1; margin: 0 0 6px; }
+  .speed-block { margin: 0 0 6px; }
   .speed-actual { font-size: 40px; }
   .speed-actual small { font-size: 14px; }
   .speed-target { font-size: 13px; margin-top: 2px; }
@@ -404,19 +415,19 @@ button { font-family: inherit; cursor: pointer; }
      w jeden rzad zamiast w dwa. To dokladnie te trzydziesci pikseli, ktorych
      brakowalo, zeby przycisk zatrzymania zmiescil sie na ekranie. */
   .tiles {
-    grid-column: 2; grid-row: 2; gap: 6px; margin-bottom: 6px;
+    gap: 6px; margin-bottom: 6px;
     grid-template-columns: repeat(6, 1fr);
   }
   .tile { padding: 5px 4px; }
   .tv { font-size: 16px; }
   .tl { font-size: 9px; }
 
-  .next { grid-column: 2; grid-row: 3; margin-bottom: 6px; padding: 6px 10px; font-size: 13px; }
-  .controls { grid-column: 2; grid-row: 4; gap: 6px; margin-bottom: 6px; }
+  .next { margin-bottom: 6px; padding: 6px 10px; font-size: 13px; }
+  .controls { gap: 6px; margin-bottom: 6px; }
   .ctl { padding: 9px 4px; font-size: 14px; }
   .ctl small { font-size: 9px; }
-  #c-stop { grid-column: 2; grid-row: 5; margin: 0 0 6px; padding: 11px; font-size: 15px; }
-  .run-msg { grid-column: 2; grid-row: 6; font-size: 12px; min-height: 0; }
+  #c-stop { margin: 0 0 6px; padding: 11px; font-size: 15px; }
+  .run-msg { font-size: 12px; min-height: 0; }
 }
 
 /* ---------- tryb kompaktowy ekranu treningu ---------- */
@@ -424,11 +435,16 @@ button { font-family: inherit; cursor: pointer; }
    Liczby, na które patrzy się w biegu — czas do końca odcinka i prędkość —
    dostają tyle miejsca, ile się da; reszta schodzi do jednego wiersza. */
 
+/* W pionie kontener nie istnieje dla układu; w poziomie staje się kolumną. */
+.run-side { display: contents; }
+
+/* Dystans i kalorie to liczby, na które zerka się w biegu - muszą być
+   czytelne z odległości ramienia, nie tylko obecne. */
 .mini {
-  text-align: center; color: var(--dim); font-size: 14px;
+  text-align: center; color: var(--dim); font-size: 18px;
   font-variant-numeric: tabular-nums; margin-bottom: 12px;
 }
-.mini b { color: var(--fg); font-weight: 700; }
+.mini b { color: var(--fg); font-weight: 700; font-size: 21px; }
 
 .run-foot { display: flex; gap: 8px; margin-bottom: 10px; }
 .run-foot button { flex: 1; padding: 11px 8px; font-size: 14px; }
@@ -462,34 +478,24 @@ button { font-family: inherit; cursor: pointer; }
   /* Czysty podział: po lewej wyłącznie pierścień z nazwą odcinka, po prawej
      wszystko pozostałe. Wcześniej wiersz skrótowy i przyciski rozciągały się
      pod obiema kolumnami, przez co ekran rozpadał się na trzy strefy. */
-  #view-run.compact.active {
-    grid-template-columns: minmax(0, 40%) minmax(0, 1fr);
-    align-items: center;
-    /* Treści jest tu mało, więc bez wyśrodkowania cały ekran wisiałby u góry
-       z pustym pasem pod spodem. */
-    align-content: center;
-    min-height: calc(100vh - 16px);
-  }
+  #view-run.compact.active { grid-template-columns: minmax(0, 40%) minmax(0, 1fr); }
   /* Bez tego ograniczenia szerokość 74vw z układu pionowego dałaby tu koło
      na pół ekranu i wypchnęła resztę poza widok. */
   /* Pierścień zajmuje całą lewą kolumnę pod nazwą odcinka. Bez ograniczenia
      szerokości wziąłby wartość z układu pionowego i zająłby pół ekranu. */
-  /* Pierścień rozpina się przez wiersze prawej kolumny bez ostatniego,
-     który trzyma komunikaty. Gdyby obejmował i ten, cała nadwyżka wysokości
-     wpadałaby w pusty wiersz, a prawa kolumna zbijała się u góry. */
   #view-run.compact .ring-wrap {
-    grid-column: 1; grid-row: 2 / 5; margin: 0 auto;
-    width: min(42vw, 232px); align-self: center;
+    grid-column: 1; grid-row: 2; margin: 0 auto;
+    width: min(46vw, 252px); align-self: center;
   }
-  #view-run.compact .segtime { font-size: 46px; }
+  #view-run.compact .segtime { font-size: 52px; }
   #view-run.compact .ring-sub { font-size: 9px; }
 
-  #view-run.compact .speed-block { grid-column: 2; grid-row: 1; margin: 0 0 8px; }
+  #view-run.compact .speed-block { margin: 0 0 10px; }
   #view-run.compact .speed-actual { font-size: 56px; }
-  #view-run.compact .mini { grid-column: 2; grid-row: 2; margin-bottom: 8px; font-size: 13px; }
-  #view-run.compact .next { grid-column: 2; grid-row: 3; }
-  #view-run.compact .run-foot { grid-column: 2; grid-row: 4; margin-bottom: 0; }
-  #view-run.compact .run-msg { grid-column: 2; grid-row: 5; }
+  #view-run.compact .mini { margin-bottom: 12px; font-size: 17px; }
+  #view-run.compact .next { margin-bottom: 10px; }
+  #view-run.compact .run-foot { margin-bottom: 0; }
+
 }
 
 /* W pionie tryb kompaktowy ma mało elementów, więc bez tego dolna trzecia
