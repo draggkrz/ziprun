@@ -5,10 +5,25 @@
 // temu przy analizie logu zawsze wiadomo, która wersja go wyprodukowała.
 //
 // Podnosząc wersję, dopisz wpis na początku CHANGELOG — kolejność malejąca.
+//
+// ZASADA: każda zmiana widoczna dla użytkownika podnosi numer. Bez wyjątków
+// typu "to jeszcze nie jest wypchnięte, więc dopiszę do poprzedniej wersji" —
+// taki wyjątek raz już doprowadził do sześciu commitów pod jednym numerem.
 
-export const VERSION = '1.7.0';
+export const VERSION = '1.7.1';
 
 export const CHANGELOG = [
+  {
+    version: '1.7.1',
+    date: '2026-09-11',
+    title: 'Kosmetyka ekranu treningu w poziomie',
+    changes: [
+      'Zniknął stały napis „Tryb prowadzenia — prędkość ustawiasz ręcznie”. Informacja pojawia się teraz raz, na starcie, jako powiadomienie.',
+      'Dystans i kalorie wyraźnie powiększone — to liczby, na które zerka się w biegu.',
+      'Prawa kolumna w orientacji poziomej scalona w jeden blok wyśrodkowany w pionie. Wcześniej jej wiersze rozciągała wysokość pierścienia obok i odstępy między nimi robiły się ogromne.',
+      'Obie kolumny centrują się względem tego samego pasa, więc układ nie jest już przekrzywiony. Pierścienie powiększone.',
+    ],
+  },
   {
     version: '1.7.0',
     date: '2026-09-11',
