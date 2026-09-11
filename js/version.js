@@ -10,9 +10,21 @@
 // typu "to jeszcze nie jest wypchnięte, więc dopiszę do poprzedniej wersji" —
 // taki wyjątek raz już doprowadził do sześciu commitów pod jednym numerem.
 
-export const VERSION = '1.8.0';
+export const VERSION = '1.9.0';
 
 export const CHANGELOG = [
+  {
+    version: '1.9.0',
+    date: '2026-09-11',
+    title: 'Historia ze szczegółami treningu',
+    changes: [
+      'Dotknięcie wpisu w historii rozwija szczegóły: średnia prędkość, tempo w min/km, prędkość maksymalna, kalorie, tętno, liczba przebiegniętych odcinków i użyta korekta prędkości.',
+      'Miniatura przebiegu prędkości przy każdym treningu, dla którego zachowały się próbki.',
+      'Porównanie z poprzednim biegiem tego samego planu — widać kierunek, a nie tylko stan.',
+      'Przerwany trening pokazuje, jak daleko zaszedłeś: „38% planu”, „9 z 28 odcinków”. Wcześniej samo słowo „przerwany” nie mówiło, czy po minucie, czy po pół godzinie.',
+      'Zapisywana jest też nazwa bieżni i informacja, czy trening prowadziło automatyczne sterowanie.',
+    ],
+  },
   {
     version: '1.8.0',
     date: '2026-09-11',

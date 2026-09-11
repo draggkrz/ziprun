@@ -522,3 +522,42 @@ button { font-family: inherit; cursor: pointer; }
   #view-run.compact .ring-wrap { margin-top: auto; }
   #view-run.compact .speed-block { margin-bottom: auto; }
 }
+
+/* ---------- rozwijane wpisy historii ---------- */
+/* Lista ma zostać listą — szczegóły pokazują się dopiero po dotknięciu wpisu. */
+.hist { display: block; cursor: pointer; }
+.hist-top { display: grid; grid-template-columns: 1fr auto; gap: 4px; }
+.hist-det { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.hist.open .hist-det { display: block; }
+.hist-top::after {
+  content: '⌄'; position: absolute; right: 14px; bottom: 8px;
+  color: var(--dim); font-size: 13px; line-height: 1;
+}
+.hist { position: relative; }
+.hist.open .hist-top::after { content: '⌃'; }
+
+.hist-facts {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  gap: 8px; margin-bottom: 4px;
+}
+.hist-facts > div {
+  background: var(--bg2); border: 1px solid var(--line); border-radius: 9px;
+  padding: 7px 9px;
+}
+.hist-facts span {
+  display: block; font-size: 10px; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--dim);
+}
+.hist-facts b { font-size: 15px; font-variant-numeric: tabular-nums; }
+
+.hist-cmp { margin-top: 10px; font-size: 13px; color: var(--dim); }
+.hist-cmp b { color: var(--fg); }
+.hist-cmp b.lepiej { color: var(--ok); }
+.hist-cmp b.gorzej { color: var(--warn); }
+
+/* Miniatura przebiegu prędkości — kształt, nie wartości. */
+.spark {
+  display: flex; align-items: flex-end; gap: 1px; height: 40px;
+  margin-bottom: 12px; overflow: hidden;
+}
+.spark i { flex: 1 1 0; min-width: 1px; background: var(--accent); border-radius: 1px 1px 0 0; opacity: .8; }

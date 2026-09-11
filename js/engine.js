@@ -386,6 +386,13 @@ export class WorkoutEngine {
       maxHr: hrs.length ? Math.max(...hrs) : null,
       completed: this.state === STATE.FINISHED,
       speedOffset: this.speedOffset,
+      // Zaplanowany czas pozwala policzyć, jak daleko zaszedłeś w przerwanym
+      // treningu — bez tego "przerwany" nie mówi, czy po minucie, czy po pół
+      // godzinie.
+      plannedS: this.plan?.totalSeconds ?? null,
+      segmentCount: this.plan?.segments.length ?? null,
+      segmentsDone: this.segIndex + (this.state === STATE.FINISHED ? 1 : 0),
+      maxSpeed: this.samples.reduce((a, s) => Math.max(a, s.actual ?? s.target ?? 0), 0),
       samples: this.samples,
     };
   }
