@@ -635,6 +635,23 @@ $('s-countdown').addEventListener('input', (e) => {
   $('s-countdown-v').textContent = settings.countdown + ' s';
   store.saveSettings(settings);
 });
+/**
+ * Awaryjne odświeżenie aplikacji. Czyści rejestracje service workera i pamięć
+ * podręczną, ale nie dotyka localStorage — profil, historia i zapisy
+ * techniczne zostają.
+ */
+$('btn-force-update').addEventListener('click', async () => {
+  if (!confirm('Pobrać wszystkie pliki aplikacji od nowa?\n\nProfil, historia treningów i zapisy techniczne zostaną zachowane.')) return;
+  try {
+    for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister();
+    for (const k of await caches.keys()) await caches.delete(k);
+  } catch (e) {
+    toast('Nie udało się wyczyścić pamięci: ' + e.message, true);
+    return;
+  }
+  location.reload();
+});
+
 $('btn-test-voice').addEventListener('click', () => {
   speech.beep();
   speech.say('Za dziesięć sekund: interwał cztery minuty, trzynaście kilometrów na godzinę.', { priority: true });
@@ -818,6 +835,16 @@ window.addEventListener('beforeunload', (e) => {
 });
 
 if ('serviceWorker' in navigator) {
-  // type:'module' pozwala service workerowi zaimportować numer wersji
-  navigator.serviceWorker.register('sw.js', { type: 'module' }).catch(() => { /* offline opcjonalny */ });
+  // Numer wersji w adresie skryptu jest tu konieczny, nie ozdobny. Sam sw.js
+  // nie zmienia się między wydaniami — zmienia się tylko importowany
+  // js/version.js. Przeglądarka porównuje bajty sw.js, widziała identyczne
+  // i nie wymieniała service workera, więc telefon zostawał na starej wersji.
+  // Zmiana adresu gwarantuje wykrycie aktualizacji.
+  //
+  // updateViaCache 'none' dokłada drugie zabezpieczenie: bez tego importy są
+  // przy sprawdzaniu brane z pamięci HTTP (domyślne 'imports'), a GitHub Pages
+  // podaje max-age=600.
+  navigator.serviceWorker
+    .register('sw.js?v=' + VERSION, { type: 'module', updateViaCache: 'none' })
+    .catch(() => { /* offline opcjonalny */ });
 }

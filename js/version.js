@@ -10,9 +10,19 @@
 // typu "to jeszcze nie jest wypchnięte, więc dopiszę do poprzedniej wersji" —
 // taki wyjątek raz już doprowadził do sześciu commitów pod jednym numerem.
 
-export const VERSION = '1.7.1';
+export const VERSION = '1.7.2';
 
 export const CHANGELOG = [
+  {
+    version: '1.7.2',
+    date: '2026-09-11',
+    title: 'Aktualizacje docierają na telefon',
+    changes: [
+      'Podniesienie wersji nie wyzwalało wymiany plików w telefonie. Sam sw.js nie zmieniał się między wydaniami — zmieniał się tylko importowany numer wersji — a przeglądarka porównuje bajty sw.js i uznawała, że nie ma czego aktualizować.',
+      'Numer wersji trafia teraz do adresu skryptu, więc każde wydanie jest wykrywane. Importy nie są już brane z pamięci HTTP przy sprawdzaniu aktualizacji.',
+      'W Profilu, w sekcji „O aplikacji”, przybył przycisk „Pobierz aplikację od nowa” — czyści pamięć podręczną bez naruszania profilu, historii i zapisów technicznych.',
+    ],
+  },
   {
     version: '1.7.1',
     date: '2026-09-11',
