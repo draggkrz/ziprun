@@ -25,6 +25,9 @@ export const saveProfile = (p) => write(KEY_PROFILE, p);
 
 export const DEFAULT_SETTINGS = {
   voice: true,
+  // Tryb kompaktowy jest domyslny: sterowanie odbywa sie z panelu biezni,
+  // a ekran ma przede wszystkim informowac.
+  compact: true,
   autoControl: true,
   countdown: 5,
   keepAwake: true,

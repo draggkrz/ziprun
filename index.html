@@ -106,7 +106,17 @@
     <div class="tile"><div class="tv" id="run-pace">—</div><div class="tl">min/km</div></div>
   </div>
 
+  <!-- Pasek postępu, wiersz skrótowy i stopka należą do trybu kompaktowego;
+       w pełnym są ukryte, a ich rolę pełnią kafelki i przyciski sterowania. -->
+  <div id="run-progress" class="progress"><i></i></div>
+  <div id="run-mini" class="mini"></div>
+
   <div id="run-next" class="next"></div>
+
+  <div class="run-foot">
+    <button id="btn-end" class="ghost">Zakończ trening</button>
+    <button id="btn-mode" class="ghost">Pełny panel</button>
+  </div>
 
   <div class="controls">
     <button id="c-slower" class="ctl">−0,5<small>km/h</small></button>
@@ -257,6 +267,8 @@
 
   <div class="card">
     <div class="card-title">Ustawienia</div>
+    <label class="switch"><input id="s-compact" type="checkbox"><span>Tryb kompaktowy — ekran bez przycisków sterowania</span></label>
+    <p class="hint" style="margin:-4px 0 10px">Prędkość i zatrzymanie obsługujesz z panelu bieżni. Wyłącz, żeby mieć na ekranie korekty ±0,5 km/h, pauzę i przeskok odcinka.</p>
     <label class="switch"><input id="s-voice" type="checkbox"><span>Zapowiedzi głosowe</span></label>
     <label class="switch"><input id="s-auto" type="checkbox"><span>Automatyczne sterowanie bieżnią</span></label>
     <label class="switch"><input id="s-awake" type="checkbox"><span>Nie wygaszaj ekranu w trakcie</span></label>

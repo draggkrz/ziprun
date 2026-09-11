@@ -188,6 +188,34 @@ tools/serve.js        lokalny serwer do testów
 tools/make-icons.js   generator ikon PWA
 ```
 
+## Ekran treningu: tryb kompaktowy i pełny
+
+Domyślny jest **tryb kompaktowy**: duże odliczanie odcinka, duża prędkość
+faktyczna, pasek postępu całego treningu i jeden wiersz z dystansem, kaloriami
+i czasem do końca. Nie ma przycisków sterowania — założenie jest takie, że
+prędkość i zatrzymanie obsługujesz z panelu bieżni.
+
+**Pełny panel** dokłada kafelki z pomiarami oraz korekty ±0,5 km/h, pauzę,
+przeskok odcinka i duży przycisk zatrzymania. Przełącznik jest na samym ekranie
+treningu oraz w Profilu; wybór jest zapamiętywany.
+
+W obu trybach zostaje przycisk kończący trening: gdy zatrzymasz pas z konsoli
+bieżni, aplikacja wchodzi w pauzę i czeka na decyzję.
+
+## Co aplikacja wie o zmianach z panelu bieżni
+
+| Zdarzenie na konsoli | Reakcja aplikacji |
+|---|---|
+| Ręczna zmiana prędkości | **Widzi** nową prędkość i pokazuje ją jako aktualną, ale traktuje jak stan, nie jak polecenie. Plan nadpisze ją przy najbliższym przejściu odcinka. |
+| Zatrzymanie lub pauza | **Reaguje** — status `02` wstrzymuje trening. |
+| Wyjęcie kluczyka bezpieczeństwa | **Reaguje** — status `03` przerywa trening. |
+| Start | Widzi status `04`; wykorzystywane przy czekaniu na ruszenie pasa. |
+
+Zipro Newlite nie wysyła zdarzenia „użytkownik zmienił prędkość" — w żadnym
+z dwóch raportów diagnostycznych nie ma takiej ramki, mimo że prędkość była
+zmieniana ręcznie wielokrotnie. Dlatego ręcznej korekty nie da się odróżnić
+od skutku własnej komendy aplikacji.
+
 ## Zapis techniczny treningu
 
 Każdy trening jest rejestrowany: komendy wysłane do bieżni, jej odpowiedzi,

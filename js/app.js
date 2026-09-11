@@ -261,8 +261,10 @@ engine.on('tick', (d) => {
 
   const seg = d.segment;
   const kind = KIND_LABEL[seg.kind] || '';
+  const pozycja = (d.segIndex + 1) + ' z ' + engine.plan.segments.length;
   // Nie powtarzamy nagłówka, gdy nazwa odcinka jest tym samym słowem.
-  $('run-kind').textContent = kind === seg.label ? '' : kind;
+  $('run-kind').textContent = [kind === seg.label ? '' : kind, 'odcinek ' + pozycja]
+    .filter(Boolean).join(' · ');
   $('run-label').textContent = seg.label;
   $('run-segtime').textContent = fmtTime(d.segRemaining);
 
@@ -282,6 +284,17 @@ engine.on('tick', (d) => {
   $('run-kcal').textContent = String(d.metrics.kcal ?? Math.round(profile.weightKg * (d.distanceM / 1000) * 1.036));
   $('run-hr').textContent = d.metrics.hr ? String(d.metrics.hr) : '—';
   $('run-pace').textContent = paceStr(actual ?? d.targetSpeed);
+
+  // Elementy trybu kompaktowego. Pasek pokazuje postęp całego treningu,
+  // wiersz pod nim zbiera liczby, które w pełnym trybie są w kafelkach.
+  const total = engine.plan.totalSeconds;
+  $('run-progress').firstElementChild.style.width =
+    (total > 0 ? Math.min(100, (d.totalElapsed / total) * 100) : 0) + '%';
+  const kcal = d.metrics.kcal ?? Math.round(profile.weightKg * (d.distanceM / 1000) * 1.036);
+  $('run-mini').innerHTML =
+    '<b>' + (d.distanceM / 1000).toFixed(2).replace('.', ',') + '</b> km · ' +
+    '<b>' + kcal + '</b> kcal · zostało <b>' + fmtTime(d.totalRemaining) + '</b>' +
+    (d.metrics.hr ? ' · <b>' + d.metrics.hr + '</b> bpm' : '');
 
   const off = $('run-offset');
   if (engine.speedOffset !== 0) {
@@ -368,9 +381,31 @@ $('c-faster').addEventListener('click', () => engine.adjustSpeed(+0.5));
 $('c-slower').addEventListener('click', () => engine.adjustSpeed(-0.5));
 $('c-inc-up').addEventListener('click', () => engine.adjustIncline(+1));
 $('c-inc-down').addEventListener('click', () => engine.adjustIncline(-1));
-$('c-stop').addEventListener('click', async () => {
+async function endWorkout() {
   if (!confirm('Zatrzymać trening i pas bieżni?')) return;
   await engine.abort('Trening zatrzymany.');
+}
+$('c-stop').addEventListener('click', endWorkout);
+$('btn-end').addEventListener('click', endWorkout);
+
+/**
+ * Przełącznik trybu ekranu treningu. Kompaktowy pokazuje tylko to, na co
+ * patrzy się w biegu; pełny dokłada kafelki i przyciski sterowania dla tych,
+ * którzy wolą zmieniać prędkość z telefonu, a nie z panelu bieżni.
+ */
+function applyRunMode() {
+  const compact = settings.compact;
+  $('view-run').classList.toggle('compact', compact);
+  $('btn-mode').textContent = compact ? 'Pełny panel' : 'Tryb kompaktowy';
+  const sw = $('s-compact');
+  if (sw) sw.checked = compact;
+}
+
+$('btn-mode').addEventListener('click', () => {
+  settings.compact = !settings.compact;
+  store.saveSettings(settings);
+  applyRunMode();
+  toast(settings.compact ? 'Tryb kompaktowy' : 'Pełny panel ze sterowaniem');
 });
 
 // ------------------------------------------------------------ podsumowanie
@@ -512,6 +547,7 @@ function renderProfile() {
   set('p-walk', profile.walk); $('p-walk-v').textContent = profile.walk.toFixed(1).replace('.', ',') + ' km/h';
   set('p-cap', profile.maxSpeedCap); $('p-cap-v').textContent = profile.maxSpeedCap.toFixed(1).replace('.', ',') + ' km/h';
   set('p-inc', profile.maxInclineCap); $('p-inc-v').textContent = profile.maxInclineCap + ' %';
+  $('s-compact').checked = settings.compact;
   $('s-voice').checked = settings.voice;
   $('s-auto').checked = settings.autoControl;
   $('s-awake').checked = settings.keepAwake;
@@ -552,6 +588,7 @@ const bindSwitch = (id, key, after) => $(id).addEventListener('change', (e) => {
   store.saveSettings(settings);
   after?.(e.target.checked);
 });
+bindSwitch('s-compact', 'compact', applyRunMode);
 bindSwitch('s-voice', 'voice', (v) => { speech.enabled = v; if (v) speech.say('Zapowiedzi włączone'); });
 bindSwitch('s-auto', 'autoControl');
 bindSwitch('s-awake', 'keepAwake');
@@ -730,6 +767,7 @@ $('btn-clear-log').addEventListener('click', () => { $('log').textContent = ''; 
 
 if (!bleAvailable()) $('unsupported').classList.remove('hidden');
 renderVersion();
+applyRunMode();
 renderPlans();
 renderProfile();
 updateInclineUi();
