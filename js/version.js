@@ -10,9 +10,19 @@
 // typu "to jeszcze nie jest wypchnięte, więc dopiszę do poprzedniej wersji" —
 // taki wyjątek raz już doprowadził do sześciu commitów pod jednym numerem.
 
-export const VERSION = '1.7.3';
+export const VERSION = '1.7.4';
 
 export const CHANGELOG = [
+  {
+    version: '1.7.4',
+    date: '2026-09-11',
+    title: 'Pierścień z podziałem na odcinki',
+    changes: [
+      'Zewnętrzny pierścień postępu jest teraz grubszy i rozbity na łuki odpowiadające odcinkom planu. Widać nie tylko ile treningu zostało, ale też z ilu kawałków składa się reszta i jak długi jest każdy z nich.',
+      'W orientacji poziomej nazwa odcinka przeniosła się do prawej kolumny, gdzie było wolne miejsce.',
+      'Zwolnione miejsce w lewej kolumnie dostał pierścień — urósł z 252 do 363 px, czyli o ponad połowę.',
+    ],
+  },
   {
     version: '1.7.3',
     date: '2026-09-11',

@@ -221,7 +221,8 @@ function openPlan(id) {
 $('btn-start').addEventListener('click', async () => {
   if (!selectedPlan) return;
   const plan = planById(selectedPlan.id);
-  engine.load(plan, profile);
+  const rozpisany = engine.load(plan, profile);
+  zbudujPierscienOdcinkow(rozpisany);
   runSaved = false;
   engine.autoControl = settings.autoControl && !plan.manual && tm.caps.speed;
   trace.start({
@@ -245,9 +246,62 @@ $('btn-start').addEventListener('click', async () => {
 
 // ------------------------------------------------------------ ekran treningu
 
-// Obwody obu pierscieni: 2*pi*84 i 2*pi*96.
-const RING = 528;
-const RING_TOTAL = 603;
+// Obwody obu pierścieni: 2*pi*80 (wewnętrzny) i 2*pi*95 (zewnętrzny).
+const RING = 502.65;
+const RING_TOTAL = 596.90;
+const PROMIEN_ZEWN = 95;
+// Przerwa między łukami odcinków, w jednostkach obwodu. Przy bardzo krótkich
+// odcinkach łuk zostaje mimo to widoczny — patrz Math.max niżej.
+const PRZERWA_LUKU = 3;
+
+/** Łuk pojedynczego odcinka jako okrąg z jedną kreską na obwodzie. */
+function lukOdcinka(dlugosc, poczatekUlamek, klasa) {
+  const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  c.setAttribute('cx', '100');
+  c.setAttribute('cy', '100');
+  c.setAttribute('r', String(PROMIEN_ZEWN));
+  c.setAttribute('class', klasa);
+  c.setAttribute('stroke-dasharray', dlugosc + ' ' + (RING_TOTAL - dlugosc));
+  c.setAttribute('stroke-dashoffset', String(-poczatekUlamek * RING_TOTAL));
+  return c;
+}
+
+let lukiOdcinkow = [];
+
+/**
+ * Buduje zewnętrzny pierścień z osobnym łukiem na każdy odcinek planu.
+ * Wywoływane raz na trening — długości zależą od planu, nie od postępu.
+ */
+function zbudujPierscienOdcinkow(plan) {
+  const g = $('ring-segments');
+  g.innerHTML = '';
+  lukiOdcinkow = [];
+  const calosc = plan.totalSeconds;
+  if (!calosc) return;
+
+  let narastajaco = 0;
+  for (const seg of plan.segments) {
+    const poczatek = narastajaco / calosc;
+    const pelna = (seg.duration / calosc) * RING_TOTAL;
+    // Bardzo krótkie odcinki (30 s w planie 30-minutowym) muszą zostać
+    // widoczne, więc przerwa nigdy nie zjada całego łuku.
+    const dlugosc = Math.max(2, pelna - PRZERWA_LUKU);
+    g.appendChild(lukOdcinka(dlugosc, poczatek, 'seg-arc seg-arc-bg'));
+    const przod = lukOdcinka(0, poczatek, 'seg-arc seg-arc-fg');
+    g.appendChild(przod);
+    lukiOdcinkow.push({ el: przod, dlugosc, od: narastajaco, trwanie: seg.duration });
+    narastajaco += seg.duration;
+  }
+}
+
+/** Wypełnia łuki proporcjonalnie do czasu, który upłynął. */
+function odswiezPierscienOdcinkow(uplynelo) {
+  for (const l of lukiOdcinkow) {
+    const u = Math.min(1, Math.max(0, (uplynelo - l.od) / l.trwanie));
+    const d = u * l.dlugosc;
+    l.el.setAttribute('stroke-dasharray', d + ' ' + (RING_TOTAL - d));
+  }
+}
 
 /**
  * Bieżnia bez sterowanej pochylni pokazywałaby stałe zero i miała dwa martwe
@@ -308,13 +362,9 @@ engine.on('tick', (d) => {
   $('run-hr').textContent = d.metrics.hr ? String(d.metrics.hr) : '—';
   $('run-pace').textContent = paceStr(actual ?? d.targetSpeed);
 
-  // Elementy trybu kompaktowego. Pasek pokazuje postęp całego treningu,
-  // wiersz pod nim zbiera liczby, które w pełnym trybie są w kafelkach.
-  const total = engine.plan.totalSeconds;
-  const postep = total > 0 ? Math.min(1, d.totalElapsed / total) : 0;
-  // Zewnetrzny pierscien przybywa wraz z postepem calego treningu, wewnetrzny
-  // ubywa razem z odcinkiem - dwie rozne informacje w jednym miejscu.
-  $('ring-total').style.strokeDashoffset = String(RING_TOTAL * (1 - postep));
+  // Zewnętrzny pierścień przybywa wraz z postępem treningu, wewnętrzny ubywa
+  // razem z odcinkiem — dwie różne informacje w jednym miejscu.
+  odswiezPierscienOdcinkow(d.totalElapsed);
   const kcal = d.metrics.kcal ?? Math.round(profile.weightKg * (d.distanceM / 1000) * 1.036);
   $('run-mini').innerHTML =
     '<b>' + (d.distanceM / 1000).toFixed(2).replace('.', ',') + '</b> km · ' +
@@ -833,7 +883,7 @@ $('btn-clear-log').addEventListener('click', () => { $('log').textContent = ''; 
 function sprawdzSpojnoscPlikow() {
   const wymagane = [
     'run-kind', 'run-label', 'run-segtime', 'run-speed', 'run-target', 'run-mini',
-    'run-next', 'btn-mode', 'btn-end', 'c-stop', 'c-pause', 'ring-fg', 'ring-total',
+    'run-next', 'btn-mode', 'btn-end', 'c-stop', 'c-pause', 'ring-fg', 'ring-segments',
   ];
   const brakuje = wymagane.filter((id) => !$(id));
   if (!brakuje.length) return;

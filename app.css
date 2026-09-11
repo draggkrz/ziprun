@@ -197,16 +197,15 @@ button { font-family: inherit; cursor: pointer; }
 .ring-bg { fill: none; stroke: var(--bg2); stroke-width: 12; }
 .ring-fg {
   fill: none; stroke: var(--accent); stroke-width: 12; stroke-linecap: round;
-  stroke-dasharray: 528; stroke-dashoffset: 0; transition: stroke-dashoffset .25s linear;
+  stroke-dasharray: 503; stroke-dashoffset: 0; transition: stroke-dashoffset .25s linear;
 }
 /* Zewnętrzny pierścień to inna informacja niż wewnętrzny, więc dostaje inny
    kolor. Zielony czyta się jako „zrobione" i nie myli się z pomarańczowym
-   odliczaniem bieżącego odcinka. */
-.ring-total-bg { fill: none; stroke: var(--bg2); stroke-width: 4; }
-.ring-total {
-  fill: none; stroke: var(--ok); stroke-width: 4; stroke-linecap: round;
-  stroke-dasharray: 603; stroke-dashoffset: 603; transition: stroke-dashoffset .4s linear;
-}
+   odliczaniem bieżącego odcinka. Jest rozbity na łuki odpowiadające odcinkom
+   planu — widać wtedy nie tylko ile zostało, ale i z czego ta reszta się składa. */
+.seg-arc { fill: none; stroke-width: 7; stroke-linecap: butt; }
+.seg-arc-bg { stroke: var(--line); }
+.seg-arc-fg { stroke: var(--ok); transition: stroke-dasharray .4s linear; }
 .ring-center {
   position: absolute; inset: 0; display: grid; place-content: center; text-align: center;
 }
@@ -397,12 +396,22 @@ button { font-family: inherit; cursor: pointer; }
     min-height: 0;
   }
 
-  .run-head { grid-column: 1; grid-row: 1; margin: 0; align-self: end; }
+  /* Nagłówek idzie do prawej kolumny — tam jest wolne miejsce, a lewa oddaje
+     całą wysokość pierścieniowi, który jest tu najważniejszy. */
+  .run-head { grid-column: 2; grid-row: 1; margin: 0 0 4px; text-align: left; padding-right: 44px; }
+  .kind { padding: 0; }
   .seg-label { font-size: 18px; }
   .kind { font-size: 10px; }
 
-  .ring-wrap { grid-column: 1; grid-row: 2; width: min(34vw, 196px); margin: 0 auto; align-self: center; }
-  .segtime { font-size: 34px; }
+  /* Pierścień ogranicza wysokość ekranu, nie szerokość kolumny — stąd vh. */
+  /* Trzy ograniczenia naraz: szerokość własnej kolumny, wysokość ekranu
+     i oddech przy krawędziach. Bez pierwszego pierścień wychodził poza
+     kolumnę i wchodził pod prawą. */
+  .ring-wrap {
+    grid-column: 1; grid-row: 1 / -1; margin: 0 auto; align-self: center;
+    width: min(100%, calc(100vh - 72px));
+  }
+  .segtime { font-size: 44px; }
   .ring-sub { font-size: 9px; }
 
   .speed-block { margin: 0 0 6px; }
@@ -484,10 +493,10 @@ button { font-family: inherit; cursor: pointer; }
   /* Pierścień zajmuje całą lewą kolumnę pod nazwą odcinka. Bez ograniczenia
      szerokości wziąłby wartość z układu pionowego i zająłby pół ekranu. */
   #view-run.compact .ring-wrap {
-    grid-column: 1; grid-row: 2; margin: 0 auto;
-    width: min(46vw, 252px); align-self: center;
+    grid-column: 1; grid-row: 1 / -1; margin: 0 auto; align-self: center;
+    width: min(100%, calc(100vh - 64px));
   }
-  #view-run.compact .segtime { font-size: 52px; }
+  #view-run.compact .segtime { font-size: 62px; }
   #view-run.compact .ring-sub { font-size: 9px; }
 
   #view-run.compact .speed-block { margin: 0 0 10px; }

@@ -80,13 +80,15 @@
   </div>
 
   <div class="ring-wrap">
-    <!-- Dwa pierścienie: wewnętrzny odlicza bieżący odcinek (ubywa),
-         zewnętrzny wypełnia się postępem całego treningu (przybywa). -->
+    <!-- Dwa pierścienie. Wewnętrzny odlicza bieżący odcinek — ubywa.
+         Zewnętrzny to postęp całego treningu, rozbity na łuki odpowiadające
+         odcinkom planu; każdy wypełnia się osobno, więc widać nie tylko ile
+         zostało, ale też z ilu kawałków składa się reszta. Łuki powstają
+         w kodzie, bo ich liczba i długości zależą od wybranego planu. -->
     <svg id="ring" viewBox="0 0 200 200" aria-hidden="true">
-      <circle class="ring-total-bg" cx="100" cy="100" r="96"></circle>
-      <circle id="ring-total" class="ring-total" cx="100" cy="100" r="96"></circle>
-      <circle class="ring-bg" cx="100" cy="100" r="84"></circle>
-      <circle id="ring-fg" class="ring-fg" cx="100" cy="100" r="84"></circle>
+      <g id="ring-segments"></g>
+      <circle class="ring-bg" cx="100" cy="100" r="80"></circle>
+      <circle id="ring-fg" class="ring-fg" cx="100" cy="100" r="80"></circle>
     </svg>
     <div class="ring-center">
       <div id="run-segtime" class="segtime">0:00</div>
