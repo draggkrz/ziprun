@@ -10,9 +10,19 @@
 // typu "to jeszcze nie jest wypchnięte, więc dopiszę do poprzedniej wersji" —
 // taki wyjątek raz już doprowadził do sześciu commitów pod jednym numerem.
 
-export const VERSION = '1.7.4';
+export const VERSION = '1.7.5';
 
 export const CHANGELOG = [
+  {
+    version: '1.7.5',
+    date: '2026-09-11',
+    title: 'Większe liczby i znikający komunikat',
+    changes: [
+      'Komunikat z poprzedniego treningu zostawał na ekranie po rozpoczęciu nowego — „Trening zatrzymany.” tuż po starcie. Jest czyszczony przy starcie, a pojedynczy komunikat znika teraz sam po kilkunastu sekundach.',
+      'Prędkość docelowa („cel 5,0 km/h”) zrównana rozmiarem z wierszem dystansu i kalorii — czyta się ją równie często.',
+      'Dystans, kalorie i czas do końca powiększone o jedną czwartą.',
+    ],
+  },
   {
     version: '1.7.4',
     date: '2026-09-11',

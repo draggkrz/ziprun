@@ -215,8 +215,8 @@ button { font-family: inherit; cursor: pointer; }
 .speed-block { text-align: center; margin: 2px 0 14px; }
 .speed-actual { font-size: 60px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -.04em; }
 .speed-actual small { font-size: 17px; color: var(--dim); font-weight: 600; margin-left: 6px; letter-spacing: 0; }
-.speed-target { color: var(--dim); font-size: 14px; margin-top: 4px; }
-.speed-target b { color: var(--accent2); }
+.speed-target { color: var(--dim); font-size: 20px; margin-top: 6px; }
+.speed-target b { color: var(--accent2); font-size: 24px; }
 .offset { color: var(--warn); margin-left: 8px; font-weight: 700; }
 .mode { font-size: 12px; color: var(--warn); margin-top: 4px; }
 
@@ -417,7 +417,10 @@ button { font-family: inherit; cursor: pointer; }
   .speed-block { margin: 0 0 6px; }
   .speed-actual { font-size: 40px; }
   .speed-actual small { font-size: 14px; }
-  .speed-target { font-size: 13px; margin-top: 2px; }
+  /* „cel" jest odczytywany tak samo często jak dystans i kalorie, więc dostaje
+     ten sam rozmiar co wiersz pod spodem. */
+  .speed-target { font-size: 21px; margin-top: 4px; }
+  .speed-target b { font-size: 26px; }
   .mode { font-size: 11px; }
 
   /* W poziomie szerokosci jest az nadto, a wysokosci brakuje - kafelki ida
@@ -450,10 +453,10 @@ button { font-family: inherit; cursor: pointer; }
 /* Dystans i kalorie to liczby, na które zerka się w biegu - muszą być
    czytelne z odległości ramienia, nie tylko obecne. */
 .mini {
-  text-align: center; color: var(--dim); font-size: 18px;
+  text-align: center; color: var(--dim); font-size: 22px;
   font-variant-numeric: tabular-nums; margin-bottom: 12px;
 }
-.mini b { color: var(--fg); font-weight: 700; font-size: 21px; }
+.mini b { color: var(--fg); font-weight: 700; font-size: 26px; }
 
 .run-foot { display: flex; gap: 8px; margin-bottom: 10px; }
 .run-foot button { flex: 1; padding: 11px 8px; font-size: 14px; }
@@ -501,7 +504,8 @@ button { font-family: inherit; cursor: pointer; }
 
   #view-run.compact .speed-block { margin: 0 0 10px; }
   #view-run.compact .speed-actual { font-size: 56px; }
-  #view-run.compact .mini { margin-bottom: 12px; font-size: 17px; }
+  #view-run.compact .mini { margin-bottom: 12px; font-size: 21px; }
+  #view-run.compact .mini b { font-size: 26px; }
   #view-run.compact .next { margin-bottom: 10px; }
   #view-run.compact .run-foot { margin-bottom: 0; }
 

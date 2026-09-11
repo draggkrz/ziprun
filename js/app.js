@@ -223,6 +223,10 @@ $('btn-start').addEventListener('click', async () => {
   const plan = planById(selectedPlan.id);
   const rozpisany = engine.load(plan, profile);
   zbudujPierscienOdcinkow(rozpisany);
+  // Komunikat z poprzedniego treningu zostawał na ekranie i wyglądał jak
+  // informacja o bieżącym — „Trening zatrzymany." tuż po starcie nowego.
+  clearTimeout(msgTimer);
+  $('run-msg').textContent = '';
   runSaved = false;
   engine.autoControl = settings.autoControl && !plan.manual && tm.caps.speed;
   trace.start({
@@ -443,7 +447,15 @@ engine.on('ended', async (sum) => {
   });
 });
 
-engine.on('msg', (m) => { $('run-msg').textContent = m; toast(m); });
+let msgTimer;
+engine.on('msg', (m) => {
+  $('run-msg').textContent = m;
+  toast(m);
+  // Komunikat znika sam. Bez tego ostrzeżenie sprzed dwudziestu minut wisiało
+  // na ekranie do końca treningu, udając bieżącą informację.
+  clearTimeout(msgTimer);
+  msgTimer = setTimeout(() => { $('run-msg').textContent = ''; }, 12000);
+});
 engine.on('segment', () => speech.beep(engine.segment.kind === 'work' ? 1040 : 720, 130));
 
 $('c-pause').addEventListener('click', () => {
