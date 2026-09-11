@@ -329,3 +329,58 @@ button { font-family: inherit; cursor: pointer; }
   background: #2a1509;
 }
 .next.ramping b { color: var(--accent); }
+
+/* ---------- ekran treningu w orientacji poziomej ---------- */
+/* Telefon położony na bok ma około 375 px wysokości — pionowa kolumna nie ma
+   szans się zmieścić, a przewijanie ekranu w trakcie biegu nie wchodzi w grę.
+   Ekran treningu przestawia się więc na dwie kolumny: po lewej pierścień
+   z nazwą odcinka, po prawej liczby i sterowanie.
+   Pozostałe widoki zostają bez zmian — to listy, które normalnie się przewijają. */
+@media (orientation: landscape) and (max-height: 560px) {
+  body:has(#view-run.active) { padding-bottom: 0; }
+  /* Pasek górny i zakładki oddają miejsce — w trakcie biegu i tak się ich
+     nie używa, a każdy piksel wysokości jest tu na wagę złota. */
+  body:has(#view-run.active) #topbar,
+  body:has(#view-run.active) #tabs { display: none; }
+  body:has(#view-run.active) main { padding: 8px 14px 0; }
+
+  #view-run.active {
+    display: grid;
+    grid-template-columns: minmax(0, 42%) minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto auto auto;
+    column-gap: 16px;
+    align-content: start;
+  }
+
+  .run-head { grid-column: 1; grid-row: 1; margin: 0 0 2px; }
+  .seg-label { font-size: 18px; }
+  .kind { font-size: 10px; }
+
+  .ring-wrap { grid-column: 1; grid-row: 2 / 7; width: min(31vw, 176px); margin: 2px auto 0; align-self: start; }
+  .segtime { font-size: 34px; }
+  .ring-sub { font-size: 9px; }
+
+  .speed-block { grid-column: 2; grid-row: 1; margin: 0 0 6px; }
+  .speed-actual { font-size: 40px; }
+  .speed-actual small { font-size: 14px; }
+  .speed-target { font-size: 13px; margin-top: 2px; }
+  .mode { font-size: 11px; }
+
+  /* W poziomie szerokosci jest az nadto, a wysokosci brakuje - kafelki ida
+     w jeden rzad zamiast w dwa. To dokladnie te trzydziesci pikseli, ktorych
+     brakowalo, zeby przycisk zatrzymania zmiescil sie na ekranie. */
+  .tiles {
+    grid-column: 2; grid-row: 2; gap: 6px; margin-bottom: 6px;
+    grid-template-columns: repeat(6, 1fr);
+  }
+  .tile { padding: 5px 4px; }
+  .tv { font-size: 16px; }
+  .tl { font-size: 9px; }
+
+  .next { grid-column: 2; grid-row: 3; margin-bottom: 6px; padding: 6px 10px; font-size: 13px; }
+  .controls { grid-column: 2; grid-row: 4; gap: 6px; margin-bottom: 6px; }
+  .ctl { padding: 9px 4px; font-size: 14px; }
+  .ctl small { font-size: 9px; }
+  #c-stop { grid-column: 2; grid-row: 5; margin: 0 0 4px; padding: 11px; font-size: 15px; }
+  .run-msg { grid-column: 2; grid-row: 6; font-size: 12px; min-height: 0; }
+}

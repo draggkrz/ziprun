@@ -6,9 +6,20 @@
 //
 // Podnosząc wersję, dopisz wpis na początku CHANGELOG — kolejność malejąca.
 
-export const VERSION = '1.5.4';
+export const VERSION = '1.6.0';
 
 export const CHANGELOG = [
+  {
+    version: '1.6.0',
+    date: '2026-09-11',
+    title: 'Orientacja pozioma w trakcie treningu',
+    changes: [
+      'Aplikacja obraca się razem z telefonem — nie jest już zablokowana w pionie. Orientacja nie jest wymuszana: decydujesz, jak trzymasz telefon.',
+      'Ekran treningu w poziomie przestawia się na dwie kolumny: pierścień odliczania po lewej, prędkość, liczby i sterowanie po prawej. Wszystko mieści się bez przewijania.',
+      'W poziomie pasek górny i zakładki chowają się na czas treningu, żeby oddać miejsce — wracają po jego zakończeniu.',
+      'Pozostałe widoki w poziomie działają jak dotąd.',
+    ],
+  },
   {
     version: '1.5.4',
     date: '2026-09-11',
