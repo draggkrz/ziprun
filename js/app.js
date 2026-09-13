@@ -304,6 +304,9 @@ let lukiOdcinkow = [];
  * Wywoływane raz na trening — długości zależą od planu, nie od postępu.
  */
 function zbudujPierscienOdcinkow(plan) {
+  // Pierwszy takt przyjdzie dopiero po odliczaniu bieżni — do tego czasu łuk
+  // odcinka ma być pusty, a nie pełny.
+  $('ring-fg').style.strokeDashoffset = String(RING);
   const g = $('ring-segments');
   g.innerHTML = '';
   lukiOdcinkow = [];
@@ -376,8 +379,11 @@ engine.on('tick', (d) => {
   $('run-label').textContent = seg.label;
   $('run-segtime').textContent = fmtTime(d.segRemaining);
 
-  const frac = seg.duration > 0 ? d.segRemaining / seg.duration : 0;
-  $('ring-fg').style.strokeDashoffset = String(RING * (1 - frac));
+  // Łuk przyrasta w miarę trwania odcinka, tak samo jak zewnętrzny pierścień
+  // całego treningu — dwa postępy obok siebie muszą iść w tę samą stronę.
+  // Liczba w środku nadal odlicza do zera, bo to ona mówi, ile jeszcze zostało.
+  const zrobione = seg.duration > 0 ? 1 - d.segRemaining / seg.duration : 0;
+  $('ring-fg').style.strokeDashoffset = String(RING * (1 - zrobione));
 
   const actual = d.metrics.speed;
   $('run-speed').textContent = (actual != null ? actual : d.targetSpeed).toFixed(1).replace('.', ',');
@@ -393,8 +399,8 @@ engine.on('tick', (d) => {
   $('run-hr').textContent = d.metrics.hr ? String(d.metrics.hr) : '—';
   $('run-pace').textContent = paceStr(actual ?? d.targetSpeed);
 
-  // Zewnętrzny pierścień przybywa wraz z postępem treningu, wewnętrzny ubywa
-  // razem z odcinkiem — dwie różne informacje w jednym miejscu.
+  // Zewnętrzny pierścień to postęp całego treningu, wewnętrzny — bieżącego
+  // odcinka. Dwie różne informacje, ale obie rosną w tę samą stronę.
   odswiezPierscienOdcinkow(d.totalElapsed);
   const kcal = d.metrics.kcal ?? Math.round(profile.weightKg * (d.distanceM / 1000) * 1.036);
   $('run-mini').innerHTML =

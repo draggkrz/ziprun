@@ -8,7 +8,22 @@ const TICK_MS = 250;
 /** Polski syntezator czyta "13.5" jako liczby oddzielone kropką - potrzebny przecinek. */
 const spoken = (n) => n.toFixed(1).replace('.', ',');
 
-const RAMP_LEAD_S = 6;      // ile sekund przed segmentem zaczynamy rozpędzać pas
+// Rozpędzanie pasa: jedna komenda co RAMP_INTERVAL_MS zmienia prędkość o RAMP_STEP,
+// więc czas rampy wynika z wielkości skoku. Stałe wyprzedzenie dawało sześć sekund
+// nawet na skok o 1 km/h, który trwa poniżej dwóch — pas był na nowej prędkości,
+// a ekran przez kilka sekund pokazywał jeszcze poprzedni odcinek.
+const RAMP_STEP = 0.5;        // km/h na jedną komendę
+const RAMP_INTERVAL_MS = 650;
+// Sama bieżnia potrzebuje jeszcze chwili, żeby dojść do zadanej prędkości.
+// Z zapisów treningów: około sekundy, niezależnie od wielkości skoku.
+const RAMP_SETTLE_S = 1;
+
+/** Ile sekund zajmie zmiana prędkości o zadaną liczbę km/h. */
+export function rampSeconds(delta) {
+  const komend = Math.max(1, Math.ceil(Math.abs(delta) / RAMP_STEP));
+  return (komend - 1) * (RAMP_INTERVAL_MS / 1000) + RAMP_SETTLE_S;
+}
+
 const ANNOUNCE_LEAD_S = 10; // ile sekund przed segmentem leci zapowiedź
 
 export const STATE = {
@@ -240,14 +255,15 @@ export class WorkoutEngine {
     const current = this.targetSpeedFor(this.segment);
     const delta = Math.abs(target - current);
     if (delta < 0.2) return;
-    // Im większy skok, tym wcześniej startujemy.
-    const lead = Math.min(12, RAMP_LEAD_S + delta * 0.8);
+    // Startujemy dokładnie tyle przed granicą, ile potrwa sama zmiana — pas
+    // dochodzi do celu w chwili, gdy zegar przechodzi na nowy odcinek.
+    const lead = Math.min(12, rampSeconds(delta));
     if (this.segRemaining > lead) return;
     this._ramped = this.segIndex;
     // Ekran musi wiedzieć, że pas zmienia już prędkość, mimo że zegar odlicza
     // wciąż poprzedni odcinek — inaczej pokazywałby coś innego, niż robi bieżnia.
     this.ramping = { target, from: current, label: next.label, up: target > current };
-    this.tm.rampTo(target, { step: 0.5, intervalMs: 650 }).catch((e) => this._msg('Rampa: ' + e.message));
+    this.tm.rampTo(target, { step: RAMP_STEP, intervalMs: RAMP_INTERVAL_MS }).catch((e) => this._msg('Rampa: ' + e.message));
   }
 
   async applySegment(seg, { immediate = false } = {}) {

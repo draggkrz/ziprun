@@ -197,7 +197,8 @@ button { font-family: inherit; cursor: pointer; }
 .ring-bg { fill: none; stroke: var(--bg2); stroke-width: 12; }
 .ring-fg {
   fill: none; stroke: var(--accent); stroke-width: 12; stroke-linecap: round;
-  stroke-dasharray: 503; stroke-dashoffset: 0; transition: stroke-dashoffset .25s linear;
+  /* Pełne przesunięcie to pusty łuk — wypełnia się w miarę trwania odcinka. */
+  stroke-dasharray: 503; stroke-dashoffset: 503; transition: stroke-dashoffset .25s linear;
 }
 /* Zewnętrzny pierścień to inna informacja niż wewnętrzny, więc dostaje inny
    kolor. Zielony czyta się jako „zrobione" i nie myli się z pomarańczowym

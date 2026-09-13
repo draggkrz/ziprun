@@ -10,9 +10,19 @@
 // typu "to jeszcze nie jest wypchnięte, więc dopiszę do poprzedniej wersji" —
 // taki wyjątek raz już doprowadził do sześciu commitów pod jednym numerem.
 
-export const VERSION = '1.10.0';
+export const VERSION = '1.10.1';
 
 export const CHANGELOG = [
+  {
+    version: '1.10.1',
+    date: '2026-09-13',
+    title: 'Zegar zgodny z pasem, łuk odcinka rośnie',
+    changes: [
+      'Rozpędzanie pasa zaczyna się dokładnie tyle przed zmianą odcinka, ile potrwa sama zmiana. Wcześniej było to sześć sekund niezależnie od skoku, więc przy przejściu o 1 km/h bieżnia biegła już nową prędkością, a ekran przez kilka sekund pokazywał poprzedni odcinek.',
+      'Czas zmiany wynika teraz z odstępu między komendami i wielkości skoku, a nie ze stałej w kodzie — zgadza się z pomiarami z bieżni co do sekundy.',
+      'Pomarańczowy łuk bieżącego odcinka przyrasta w miarę jego trwania, zamiast się kurczyć. Idzie więc w tę samą stronę co zielony postęp całego treningu; liczba w środku nadal odlicza do zera.',
+    ],
+  },
   {
     version: '1.10.0',
     date: '2026-09-11',
