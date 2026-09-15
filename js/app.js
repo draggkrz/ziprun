@@ -27,6 +27,12 @@ let settings = store.loadSettings();
 let selectedPlan = null;
 let levelFilter = 'all';
 let lastSummary = null;
+
+/** Jedno zdanie o wyniku treningu — trafia do nagłówka zapisu technicznego. */
+const opisWyniku = (sum) => !sum ? '-' :
+  fmtTime(sum.durationS) + ', ' + sum.distanceKm.toFixed(2) + ' km' +
+  (sum.completed ? ', ukończony' : ', przerwany');
+
 let runSaved = false;
 
 speech.enabled = settings.voice;
@@ -475,6 +481,10 @@ engine.on('ended', async (sum) => {
   // jest już na ekranie, więc to czekanie niczego nie blokuje.
   await waitForBeltStop();
   trace.stop();
+  // Wynik wpisujemy do metadanych zapisu, a nie dopiero przy pobieraniu.
+  // Inaczej plik pobrany później z listy zapisów nie miał w nagłówku ani
+  // czasu, ani dystansu — a to pierwsze, czego się w nim szuka.
+  trace.meta.wynik = opisWyniku(sum);
   store.addTrace({
     date: sum.date,
     planName: sum.planName,
@@ -732,12 +742,7 @@ $('btn-export-trace').addEventListener('click', () => {
   if (!trace.metrics.length && !trace.events.length) return toast('Brak zapisu do wyeksportowania.', true);
   downloadText(
     'ziprun-trening-' + stamp(lastSummary?.date) + '.txt',
-    trace.toText({
-      wynik: lastSummary
-        ? fmtTime(lastSummary.durationS) + ', ' + lastSummary.distanceKm.toFixed(2) + ' km' +
-          (lastSummary.completed ? ', ukończony' : ', przerwany')
-        : '-',
-    })
+    trace.toText({ wynik: opisWyniku(lastSummary) })
   );
   toast('Zapis techniczny pobrany.');
 });
