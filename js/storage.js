@@ -29,6 +29,9 @@ export const DEFAULT_SETTINGS = {
   // a ekran ma przede wszystkim informowac.
   compact: true,
   autoControl: true,
+  // Zmiana prędkości z panelu bieżni przeskalowuje resztę planu. Domyślnie
+  // włączone: skoro sterujesz z panelu, to panel ma ostatnie słowo.
+  followManual: true,
   countdown: 5,
   keepAwake: true,
   lastDeviceName: '',

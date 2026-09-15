@@ -132,6 +132,17 @@ export class Treadmill {
     return this.driver.setSpeed(this.targetSpeed);
   }
 
+  /**
+   * Prędkość ustawiona z panelu bieżni. Bieżnia nie mówi o niej ani słowa —
+   * wiemy o niej tylko stąd, że pas biegnie inaczej, niż mu kazaliśmy.
+   * Zapisujemy ją jako obowiązujący cel, żeby kolejna rampa ruszała z miejsca,
+   * w którym pas naprawdę jest, a nie z wartości zamówionej kwadrans temu.
+   */
+  adoptSpeed(kmh) {
+    this.targetSpeed = this.driver.clampSpeed(kmh);
+    return this.targetSpeed;
+  }
+
   stopRamp() {
     if (this._ramp) { clearInterval(this._ramp); this._ramp = null; }
   }

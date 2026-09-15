@@ -110,6 +110,7 @@
     <div class="speed-target">
       cel <b id="run-target">0.0</b> km/h
       <span id="run-offset" class="offset hidden"></span>
+      <span id="run-factor" class="offset hidden"></span>
     </div>
   </div>
 
@@ -288,6 +289,8 @@
     <p class="hint" style="margin:-4px 0 10px">Prędkość i zatrzymanie obsługujesz z panelu bieżni. Wyłącz, żeby mieć na ekranie korekty ±0,5 km/h, pauzę i przeskok odcinka.</p>
     <label class="switch"><input id="s-voice" type="checkbox"><span>Zapowiedzi głosowe</span></label>
     <label class="switch"><input id="s-auto" type="checkbox"><span>Automatyczne sterowanie bieżnią</span></label>
+    <label class="switch"><input id="s-follow" type="checkbox"><span>Podążaj za panelem bieżni</span></label>
+    <p class="hint" style="margin:-4px 0 10px">Gdy zmienisz prędkość na bieżni, aplikacja przyjmie ją za swoją i przeliczy resztę planu w tej samej proporcji. Bez tego następny odcinek wróci do prędkości z planu.</p>
     <label class="switch"><input id="s-awake" type="checkbox"><span>Nie wygaszaj ekranu w trakcie</span></label>
     <label class="field">
       <span>Odliczanie przed startem (s)</span>

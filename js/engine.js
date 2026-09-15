@@ -26,6 +26,20 @@ export function rampSeconds(delta) {
 
 const ANNOUNCE_LEAD_S = 10; // ile sekund przed segmentem leci zapowiedź
 
+// Wykrywanie prędkości zmienionej z panelu bieżni. Bieżnia nie wysyła o tym
+// żadnego zdarzenia — jedynym śladem jest rozjazd między prędkością, którą
+// zamówiliśmy, a tą, którą raportuje pas. W zapisach treningów pas trzyma
+// zadaną prędkość co do dziesiątej części, więc rozjazd naprawdę oznacza
+// rękę na panelu, a nie szum pomiaru.
+const RECZNA_PROG_KMH = 0.2;      // mniejsza różnica to nie jest czyjaś decyzja
+const RECZNA_STABILNOSC_S = 3;    // tyle sekund nowa prędkość musi stać w miejscu
+const RECZNA_CISZA_S = 2;         // tyle po własnej komendzie nie wnioskujemy nic
+// Granice korekty. Zejście z 9 na 2 km/h to nie jest prośba o czterokrotnie
+// wolniejszy plan, tylko potrzeba złapania oddechu — bez ograniczenia jeden
+// ruch na panelu wywracałby resztę treningu.
+const WSPOLCZYNNIK_MIN = 0.5;
+const WSPOLCZYNNIK_MAX = 1.5;
+
 export const STATE = {
   IDLE: 'idle',
   COUNTDOWN: 'countdown',
@@ -45,6 +59,8 @@ export class WorkoutEngine {
     this.segElapsed = 0;
     this.totalElapsed = 0;
     this.speedOffset = 0;      // ręczna korekta użytkownika, km/h
+    this.speedFactor = 1;      // skala calego planu po zmianie z panelu biezni
+    this.followManual = true;  // czy w ogole sledzimy panel biezni
     this.inclineOffset = 0;
     this.autoControl = true;
     this._timer = null;
@@ -55,6 +71,11 @@ export class WorkoutEngine {
     this.distanceM = 0;
     this.ramping = null;       // trwajaca zmiana predkosci przed odcinkiem
     this._lastSampleBucket = -1;
+    this._celBiezni = null;    // ostatni cel, ktory sami zamowilismy
+    this._komendaTs = 0;
+    this._obserwowana = null;  // predkosc pasa, ktora wlasnie sie utrzymuje
+    this._obserwowanaOd = 0;
+    this._zPanelu = null;      // predkosc juz przyjeta z panelu biezni
     this.samples = [];         // do wykresu i historii
     this._cb = { tick: [], segment: [], state: [], msg: [], ended: [] };
 
@@ -79,6 +100,7 @@ export class WorkoutEngine {
     this.segElapsed = 0;
     this.totalElapsed = 0;
     this.speedOffset = 0;
+    this.speedFactor = 1;
     this.inclineOffset = 0;
     this._announced = -1;
     this._ramped = -1;
@@ -86,6 +108,11 @@ export class WorkoutEngine {
     this.distanceM = 0;
     this.ramping = null;
     this._lastSampleBucket = -1;
+    this._celBiezni = null;
+    this._komendaTs = 0;
+    this._obserwowana = null;
+    this._obserwowanaOd = 0;
+    this._zPanelu = null;
     this.samples = [];
     this.autoControl = !plan.manual && this.tm.caps.speed;
     this._setState(STATE.IDLE);
@@ -99,7 +126,11 @@ export class WorkoutEngine {
 
   targetSpeedFor(seg) {
     if (!seg) return 0;
-    const v = seg.speed + (seg.kind === 'work' ? this.speedOffset : this.speedOffset * 0.5);
+    // Współczynnik skaluje cały plan — tak działa prędkość przejęta z panelu
+    // bieżni. Offset z przycisków ekranowych dokłada się osobno, bo to inna
+    // intencja: "ten plan jest za łatwy", a nie "teraz biegnę tyle".
+    const v = seg.speed * this.speedFactor +
+      (seg.kind === 'work' ? this.speedOffset : this.speedOffset * 0.5);
     return Math.max(0, Math.min(this.profile.maxSpeedCap, Math.round(v * 10) / 10));
   }
 
@@ -206,6 +237,7 @@ export class WorkoutEngine {
       });
     }
 
+    this._sledzPanel(m);
     this._maybeAnnounce();
     this._maybePreRamp();
 
@@ -227,6 +259,7 @@ export class WorkoutEngine {
       targetSpeed: this.targetSpeedFor(this.segment),
       targetIncline: this.targetInclineFor(this.segment),
       ramping: this.ramping,
+      speedFactor: this.speedFactor,
     };
   }
 
@@ -318,6 +351,72 @@ export class WorkoutEngine {
     this.applySegment(this.segment);
   }
 
+  /**
+   * Czy pas biegnie z inną prędkością, niż mu kazaliśmy? Jeśli tak i trzyma ją
+   * przez chwilę, to znaczy, że ktoś sięgnął do panelu bieżni.
+   */
+  _sledzPanel(m) {
+    if (!this.followManual || !this.autoControl || this.ramping) return;
+    const teraz = performance.now() / 1000;
+
+    // Każda nasza komenda przesuwa cel bieżni — wtedy cisza zaczyna się od nowa.
+    if (this.tm.targetSpeed !== this._celBiezni) {
+      this._celBiezni = this.tm.targetSpeed;
+      this._komendaTs = teraz;
+      // Po własnej komendzie wszystko, co pas zrobi dalej, jest znowu nowe.
+      this._zPanelu = null;
+    }
+
+    const pas = m.speed;
+    // Pas rozpędzający się z zera po starcie przechodzi przez wszystkie
+    // wartości po drodze — żadna z nich nie jest niczyją decyzją.
+    if (pas == null || pas < 0.5) return;
+    if (pas !== this._obserwowana) {
+      this._obserwowana = pas;
+      this._obserwowanaOd = teraz;
+      return;
+    }
+    if (teraz - this._komendaTs < RECZNA_CISZA_S) return;
+    if (teraz - this._obserwowanaOd < RECZNA_STABILNOSC_S) return;
+    if (Math.abs(pas - this.targetSpeedFor(this.segment)) < RECZNA_PROG_KMH) return;
+    // Ta prędkość jest już przyjęta. Rozjazd może zostać — na przykład wtedy,
+    // gdy korekta trafiła w ogranicznik — ale drugi raz jej nie ogłaszamy.
+    if (pas === this._zPanelu) return;
+
+    this._przejmijZPanelu(pas);
+  }
+
+  /**
+   * Przyjmuje prędkość z panelu jako nową skalę całego planu. Nie wysyła przy
+   * tym żadnej komendy — pas jest już tam, gdzie chciał go użytkownik.
+   */
+  _przejmijZPanelu(pas) {
+    const baza = this.segment?.speed;
+    if (!baza) return;
+    const offset = this.segment.kind === 'work' ? this.speedOffset : this.speedOffset * 0.5;
+    const chciany = (pas - offset) / baza;
+    const w = Math.min(WSPOLCZYNNIK_MAX, Math.max(WSPOLCZYNNIK_MIN, chciany));
+    this.speedFactor = Math.round(w * 1000) / 1000;
+    // Bez tego kolejna rampa ruszyłaby od prędkości, którą ostatnio zamówiliśmy,
+    // czyli szarpnęłaby pasem z powrotem do starej wartości.
+    this.tm.adoptSpeed?.(pas);
+    this._celBiezni = this.tm.targetSpeed;
+    this._komendaTs = performance.now() / 1000;
+
+    this._zPanelu = pas;
+
+    const proc = Math.round((this.speedFactor - 1) * 100);
+    const kierunek = proc > 0 ? 'szybciej' : 'wolniej';
+    if (proc === 0) {
+      this._msg('Prędkość z panelu: ' + spoken(pas) + ' km/h. Plan bez zmian.');
+      return;
+    }
+    const ograniczone = Math.abs(w - chciany) > 0.001;
+    this._msg('Prędkość z panelu: ' + spoken(pas) + ' km/h. Reszta planu ' + kierunek +
+      ' o ' + Math.abs(proc) + '%' + (ograniczone ? ' — dalej nie schodzę' : '') + '.');
+    this.speech?.say('Reszta planu ' + kierunek + ' o ' + Math.abs(proc) + ' procent');
+  }
+
   /** Korekta całego planu w górę lub w dół — przydatna, gdy plan jest za łatwy. */
   adjustSpeed(delta) {
     this.speedOffset = Math.round((this.speedOffset + delta) * 10) / 10;
@@ -402,6 +501,7 @@ export class WorkoutEngine {
       maxHr: hrs.length ? Math.max(...hrs) : null,
       completed: this.state === STATE.FINISHED,
       speedOffset: this.speedOffset,
+      speedFactor: this.speedFactor,
       // Zaplanowany czas pozwala policzyć, jak daleko zaszedłeś w przerwanym
       // treningu — bez tego "przerwany" nie mówi, czy po minucie, czy po pół
       // godzinie.

@@ -262,6 +262,7 @@ $('btn-start').addEventListener('click', async () => {
   $('run-msg').textContent = '';
   runSaved = false;
   engine.autoControl = settings.autoControl && !plan.manual && tm.caps.speed;
+  engine.followManual = settings.followManual;
   trace.start({
     wersja: 'ZipRun ' + VERSION,
     plan: plan.name,
@@ -419,6 +420,15 @@ engine.on('tick', (d) => {
     off.textContent = (engine.speedOffset > 0 ? '+' : '') + engine.speedOffset.toFixed(1).replace('.', ',');
     off.classList.remove('hidden');
   } else off.classList.add('hidden');
+
+  // Skala przejęta z panelu bieżni. Musi być widoczna — inaczej prędkości
+  // kolejnych odcinków nie zgadzałyby się z planem bez żadnego wyjaśnienia.
+  const fac = $('run-factor');
+  const proc = Math.round(((d.speedFactor ?? 1) - 1) * 100);
+  if (proc !== 0) {
+    fac.textContent = (proc > 0 ? '+' : '') + proc + '% planu';
+    fac.classList.remove('hidden');
+  } else fac.classList.add('hidden');
 
 
   // Pas zmienia prędkość zanim zegar dojdzie do końca odcinka, żeby interwał
@@ -676,6 +686,10 @@ function wpisHistorii(x, wszystkie, idx) {
   if (x.speedOffset) {
     fakty.push(['korekta', (x.speedOffset > 0 ? '+' : '') + liczba(x.speedOffset, 1) + ' km/h']);
   }
+  if (x.speedFactor && Math.round((x.speedFactor - 1) * 100) !== 0) {
+    const p = Math.round((x.speedFactor - 1) * 100);
+    fakty.push(['z panelu', (p > 0 ? '+' : '') + p + '% planu']);
+  }
   if (x.auto === false) fakty.push(['sterowanie', 'ręczne']);
   if (x.device) fakty.push(['bieżnia', x.device]);
 
@@ -767,6 +781,7 @@ function renderProfile() {
   $('s-compact').checked = settings.compact;
   $('s-voice').checked = settings.voice;
   $('s-auto').checked = settings.autoControl;
+  $('s-follow').checked = settings.followManual;
   $('s-awake').checked = settings.keepAwake;
   $('s-countdown').value = settings.countdown;
   $('s-countdown-v').textContent = settings.countdown + ' s';
@@ -808,6 +823,7 @@ const bindSwitch = (id, key, after) => $(id).addEventListener('change', (e) => {
 bindSwitch('s-compact', 'compact', applyRunMode);
 bindSwitch('s-voice', 'voice', (v) => { speech.enabled = v; if (v) speech.say('Zapowiedzi włączone'); });
 bindSwitch('s-auto', 'autoControl');
+bindSwitch('s-follow', 'followManual');
 bindSwitch('s-awake', 'keepAwake');
 $('s-countdown').addEventListener('input', (e) => {
   settings.countdown = parseInt(e.target.value, 10);
@@ -1077,7 +1093,7 @@ $('btn-clear-log').addEventListener('click', () => { $('log').textContent = ''; 
 function sprawdzSpojnoscPlikow() {
   const wymagane = [
     'run-kind', 'run-label', 'run-segtime', 'run-speed', 'run-target', 'run-mini',
-    'run-next', 'btn-mode', 'btn-end', 'c-stop', 'c-pause', 'ring-fg', 'ring-segments',
+    'run-next', 'run-factor', 'btn-mode', 'btn-end', 'c-stop', 'c-pause', 'ring-fg', 'ring-segments',
   ];
   const brakuje = wymagane.filter((id) => !$(id));
   if (!brakuje.length) return;

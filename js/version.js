@@ -10,9 +10,21 @@
 // typu "to jeszcze nie jest wypchnięte, więc dopiszę do poprzedniej wersji" —
 // taki wyjątek raz już doprowadził do sześciu commitów pod jednym numerem.
 
-export const VERSION = '1.10.2';
+export const VERSION = '1.11.0';
 
 export const CHANGELOG = [
+  {
+    version: '1.11.0',
+    date: '2026-09-15',
+    title: 'Aplikacja podąża za panelem bieżni',
+    changes: [
+      'Zmiana prędkości na panelu bieżni zostaje przyjęta jako nowa skala całego planu: reszta odcinków przelicza się w tej samej proporcji. Wcześniej najbliższe przejście odcinka wracało do prędkości z planu.',
+      'Skala widoczna na ekranie treningu („+19% planu”), zapisywana w historii i w zapisie technicznym.',
+      'Korekta ograniczona do przedziału od połowy do półtorakrotności planu — zejście z 9 na 2 km/h to potrzeba złapania oddechu, a nie prośba o czterokrotnie wolniejszy trening.',
+      'Przyjęcie prędkości nie wysyła bieżni żadnej komendy — pas zostaje tam, gdzie go ustawiłeś.',
+      'Nową opcję „Podążaj za panelem bieżni” można wyłączyć w Ustawieniach.',
+    ],
+  },
   {
     version: '1.10.2',
     date: '2026-09-15',

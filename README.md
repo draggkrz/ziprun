@@ -206,15 +206,40 @@ bieżni, aplikacja wchodzi w pauzę i czeka na decyzję.
 
 | Zdarzenie na konsoli | Reakcja aplikacji |
 |---|---|
-| Ręczna zmiana prędkości | **Widzi** nową prędkość i pokazuje ją jako aktualną, ale traktuje jak stan, nie jak polecenie. Plan nadpisze ją przy najbliższym przejściu odcinka. |
+| Ręczna zmiana prędkości | **Przejmuje** ją: nowa prędkość staje się skalą reszty planu. Wykrywana z rozjazdu między prędkością zamówioną a raportowaną — patrz niżej. |
 | Zatrzymanie lub pauza | **Reaguje** — status `02` wstrzymuje trening. |
 | Wyjęcie kluczyka bezpieczeństwa | **Reaguje** — status `03` przerywa trening. |
 | Start | Widzi status `04`; wykorzystywane przy czekaniu na ruszenie pasa. |
 
 Zipro Newlite nie wysyła zdarzenia „użytkownik zmienił prędkość" — w żadnym
 z dwóch raportów diagnostycznych nie ma takiej ramki, mimo że prędkość była
-zmieniana ręcznie wielokrotnie. Dlatego ręcznej korekty nie da się odróżnić
-od skutku własnej komendy aplikacji.
+zmieniana ręcznie wielokrotnie. Jedynym śladem jest więc rozjazd: pas biegnie
+inaczej, niż mu kazaliśmy.
+
+### Podążanie za panelem
+
+Wnioskowanie jest ostrożne, bo pomyłka po cichu przeskalowałaby cały trening.
+Prędkość z panelu zostaje przyjęta dopiero wtedy, gdy **wszystkie** warunki są
+spełnione naraz:
+
+- aplikacja nie prowadzi właśnie własnej rampy,
+- minęły co najmniej 2 sekundy od jej ostatniej komendy,
+- pas trzyma tę samą prędkość przez 3 sekundy — wartości przelotowe w trakcie
+  rozpędzania nie są niczyją decyzją,
+- różnica wobec planu wynosi co najmniej 0,2 km/h,
+- pas się kręci (powyżej 0,5 km/h), więc rozbieg ze stania nie liczy się.
+
+Przyjęcie **nie wysyła żadnej komendy** — pas jest już tam, gdzie chciał go
+użytkownik. Zmienia się natomiast skala całego planu: stosunek nowej prędkości
+do zaplanowanej obowiązuje do końca treningu, z ograniczeniem do przedziału
+0,5–1,5. Zejście z 9 na 2 km/h to nie prośba o czterokrotnie wolniejszy plan,
+tylko potrzeba złapania oddechu.
+
+Skala jest widoczna na ekranie treningu jako „+19% planu", trafia do
+podsumowania i do historii. Można ją wyłączyć w Ustawieniach.
+
+Sprawdzone na prawdziwym treningu: 1800 sekund zapisu z 14 września
+przepuszczone przez detektor daje **zero** fałszywych wykryć.
 
 ## Zapis techniczny treningu
 
