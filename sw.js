@@ -27,6 +27,7 @@ const ASSETS = [
   'js/storage.js',
   'js/version.js',
   'js/trace.js',
+  'js/generator.js',
   'js/ble/uuids.js',
   'js/ble/ftms.js',
   'js/ble/proprietary.js',

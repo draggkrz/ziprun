@@ -37,8 +37,53 @@
     <button class="chip" data-level="1">Łatwe</button>
     <button class="chip" data-level="2">Średnie</button>
     <button class="chip" data-level="3">Mocne</button>
+    <button class="chip" data-level="own">Moje</button>
   </div>
+  <button id="btn-new-plan" class="ghost big">+ Ułóż własny plan</button>
   <div id="plan-list" class="plan-list"></div>
+</section>
+
+<!-- ======================== KREATOR PLANU ======================== -->
+<section id="view-creator" class="view">
+  <button class="back" data-goto="plans">← Plany</button>
+  <h1>Własny plan</h1>
+  <p class="desc">Podaj czas, rodzaj treningu i intensywność — resztę, czyli długość
+    rozgrzewki, liczbę serii i długości odcinków, policzy generator. Prędkości
+    zapisują się jako poziomy wysiłku, więc plan skaluje się razem z profilem.</p>
+
+  <div class="card">
+    <div class="card-title">Rodzaj treningu</div>
+    <div id="kr-typy" class="filters"></div>
+    <p id="kr-opis" class="hint" style="margin:8px 0 0"></p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Czas i intensywność</div>
+    <label class="field">
+      <span>Długość treningu</span>
+      <div class="range-row"><input id="kr-czas" type="range" min="10" max="90" step="5"><b id="kr-czas-v"></b></div>
+    </label>
+    <div id="kr-intensywnosc" class="filters" style="margin-top:4px"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Podgląd</div>
+    <div id="kr-meta" class="meta-row"></div>
+    <div id="kr-chart" class="chart"></div>
+    <div class="legend">
+      <span><i class="sw warmup"></i>rozgrzewka</span>
+      <span><i class="sw work"></i>praca</span>
+      <span><i class="sw recovery"></i>przerwa</span>
+      <span><i class="sw cooldown"></i>schłodzenie</span>
+    </div>
+    <div id="kr-segments" class="seg-list" style="margin-top:10px"></div>
+  </div>
+
+  <label class="field">
+    <span>Nazwa planu</span>
+    <input id="kr-nazwa" type="text" maxlength="40" placeholder="zostaw puste, żeby użyć domyślnej">
+  </label>
+  <button id="btn-save-plan" class="primary big">Zapisz plan</button>
 </section>
 
 <!-- ======================== SZCZEGÓŁY PLANU ======================== -->
@@ -63,6 +108,7 @@
   </div>
   <div id="pd-warning" class="note hidden"></div>
   <button id="btn-start" class="primary big">Rozpocznij trening</button>
+  <button id="btn-delete-plan" class="ghost big hidden">Usuń ten plan</button>
 </section>
 
 <!-- ============================ TRENING ============================ -->

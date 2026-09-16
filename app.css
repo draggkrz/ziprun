@@ -562,3 +562,19 @@ button { font-family: inherit; cursor: pointer; }
   margin-bottom: 12px; overflow: hidden;
 }
 .spark i { flex: 1 1 0; min-width: 1px; background: var(--accent); border-radius: 1px 1px 0 0; opacity: .8; }
+
+/* ---------- kreator planu ---------- */
+/* Pole tekstowe jest jedyne w całej aplikacji - reszta danych wchodzi
+   suwakami i przełącznikami, bo na bieżni nikt nie chce pisać. */
+.field input[type=text] {
+  width: 100%; box-sizing: border-box; background: var(--bg2); color: var(--fg);
+  border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px;
+  font-size: 15px; font-family: inherit;
+}
+.field input[type=text]::placeholder { color: var(--dim); }
+/* Odznaka planu własnego na liście - odróżnia go od piętnastu wbudowanych. */
+.plan .own {
+  font-size: 11px; padding: 2px 8px; border-radius: 999px; margin-left: 8px;
+  background: var(--bg2); border: 1px solid var(--line); color: var(--dim);
+  font-weight: 600; letter-spacing: 0; text-transform: none;
+}

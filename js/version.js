@@ -10,9 +10,21 @@
 // typu "to jeszcze nie jest wypchnięte, więc dopiszę do poprzedniej wersji" —
 // taki wyjątek raz już doprowadził do sześciu commitów pod jednym numerem.
 
-export const VERSION = '1.11.1';
+export const VERSION = '1.12.0';
 
 export const CHANGELOG = [
+  {
+    version: '1.12.0',
+    date: '2026-09-16',
+    title: 'Generator własnych planów',
+    changes: [
+      'Nowy przycisk „Ułóż własny plan” nad listą. Podajesz długość, rodzaj treningu i intensywność — generator dobiera rozgrzewkę, liczbę serii i długości odcinków.',
+      'Pięć rodzajów: spalanie tłuszczu, interwały, wytrzymałość, narastający oraz marsz i regeneracja. Do tego trzy poziomy intensywności.',
+      'Podgląd przelicza się na bieżąco: czas, dystans, udział pracy, wykres profilu i pełna lista odcinków — widać plan przed zapisaniem.',
+      'Prędkości zapisują się jako poziomy wysiłku, tak jak w planach wbudowanych, więc własny plan skaluje się razem z profilem.',
+      'Własne plany mają na liście odznakę „mój” i swój filtr, wchodzą do kopii danych i wracają z importu. Każdy można usunąć — historia odbytych treningów zostaje.',
+    ],
+  },
   {
     version: '1.11.1',
     date: '2026-09-16',

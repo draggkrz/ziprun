@@ -8,6 +8,7 @@ import { Speech, ScreenKeeper } from './speech.js';
 import { parseHex, KNOWN_NAMES } from './ble/uuids.js';
 import { Trace } from './trace.js';
 import { VERSION, CHANGELOG, currentEntry } from './version.js';
+import { TYPY, INTENSYWNOSCI, MIN_MINUT, MAX_MINUT, generujPlan } from './generator.js';
 import * as store from './storage.js';
 
 const $ = (id) => document.getElementById(id);
@@ -26,6 +27,11 @@ let profile = store.loadProfile();
 let settings = store.loadSettings();
 let selectedPlan = null;
 let levelFilter = 'all';
+let wlasnePlany = store.loadPlans();
+
+/** Plany własne na początku listy — to one są świeże i to ich się szuka. */
+const wszystkiePlany = () => [...wlasnePlany, ...PLANS];
+const znajdzPlan = (id) => wlasnePlany.find((p) => p.id === id) || planById(id);
 let lastSummary = null;
 
 /** Jedno zdanie o wyniku treningu — trafia do nagłówka zapisu technicznego. */
@@ -64,6 +70,7 @@ function goto(name) {
   window.scrollTo(0, 0);
   if (name === 'history') renderHistory();
   if (name === 'profile') renderProfile();
+  if (name === 'creator') odswiezKreator();
 
   // Każde przejście to osobny wpis w historii, więc gest wstecz na telefonie
   // wraca do poprzedniego widoku zamiast zamykać aplikację.
@@ -150,7 +157,13 @@ function announceUpdate() {
 function renderPlans() {
   const list = $('plan-list');
   list.innerHTML = '';
-  const visible = PLANS.filter((p) => levelFilter === 'all' || String(p.level) === levelFilter);
+  const visible = wszystkiePlany().filter((p) => levelFilter === 'all' ||
+    (levelFilter === 'own' ? !!p.custom : String(p.level) === levelFilter));
+  if (!visible.length) {
+    list.innerHTML = '<p class="hint">Nie masz jeszcze własnych planów. ' +
+      'Ułóż pierwszy przyciskiem powyżej.</p>';
+    return;
+  }
 
   for (const plan of visible) {
     const r = resolvePlan(plan, profile);
@@ -159,7 +172,7 @@ function renderPlans() {
     btn.className = 'plan l' + plan.level;
     btn.innerHTML =
       '<div class="focus">' + plan.focus + '</div>' +
-      '<h3>' + plan.name + '</h3>' +
+      '<h3>' + plan.name + (plan.custom ? '<span class="own">mój</span>' : '') + '</h3>' +
       '<div class="row">' +
         '<span>' + Math.round(r.totalSeconds / 60) + ' min</span>' +
         '<span>~' + r.estDistanceKm.toFixed(1).replace('.', ',') + ' km</span>' +
@@ -180,7 +193,103 @@ els('#plan-filters .chip').forEach((c) =>
   })
 );
 
+// ------------------------------------------------------------------ kreator
+
+const kreator = { typ: 'fat', minuty: 30, intensywnosc: 'srednia' };
+let podgladPlanu = null;
+
+function budujKreator() {
+  $('kr-typy').innerHTML = TYPY
+    .map((t) => '<button class="chip" data-typ="' + t.id + '">' + t.nazwa + '</button>').join('');
+  $('kr-intensywnosc').innerHTML = INTENSYWNOSCI
+    .map((i) => '<button class="chip" data-int="' + i.id + '">' + i.nazwa + '</button>').join('');
+  els('#kr-typy .chip').forEach((b) =>
+    b.addEventListener('click', () => { kreator.typ = b.dataset.typ; odswiezKreator(); }));
+  els('#kr-intensywnosc .chip').forEach((b) =>
+    b.addEventListener('click', () => { kreator.intensywnosc = b.dataset.int; odswiezKreator(); }));
+  const suwak = $('kr-czas');
+  suwak.min = MIN_MINUT;
+  suwak.max = MAX_MINUT;
+  suwak.value = kreator.minuty;
+  suwak.addEventListener('input', () => { kreator.minuty = +suwak.value; odswiezKreator(); });
+  $('kr-nazwa').addEventListener('input', odswiezKreator);
+}
+
+/**
+ * Podgląd przelicza się przy każdej zmianie, bo inaczej trzeba by zgadywać,
+ * co wyjdzie z wybranych ustawień. Plan powstaje ten sam, który potem zapisujemy.
+ */
+function odswiezKreator() {
+  els('#kr-typy .chip').forEach((b) => b.classList.toggle('active', b.dataset.typ === kreator.typ));
+  els('#kr-intensywnosc .chip').forEach((b) =>
+    b.classList.toggle('active', b.dataset.int === kreator.intensywnosc));
+  $('kr-czas').value = kreator.minuty;
+  $('kr-czas-v').textContent = kreator.minuty + ' min';
+  $('kr-opis').textContent = TYPY.find((t) => t.id === kreator.typ)?.opis || '';
+
+  podgladPlanu = generujPlan({ ...kreator, nazwa: $('kr-nazwa').value });
+  const r = resolvePlan(podgladPlanu, profile);
+  const predkosci = r.segments.map((x) => x.speed);
+  const pracaS = r.segments.filter((x) => x.kind === 'work').reduce((a, x) => a + x.duration, 0);
+  $('kr-meta').innerHTML = [
+    Math.round(r.totalSeconds / 60) + ' min',
+    '~' + r.estDistanceKm.toFixed(2).replace('.', ',') + ' km',
+    r.segments.length + ' ' + plural(r.segments.length, 'odcinek', 'odcinki', 'odcinków'),
+    Math.round((pracaS / r.totalSeconds) * 100) + '% pracy',
+    // Marsz ma jedną prędkość na cały trening — „5,0–5,0" wyglądałoby na usterkę.
+    (() => {
+      const lo = Math.min(...predkosci).toFixed(1).replace('.', ',');
+      const hi = Math.max(...predkosci).toFixed(1).replace('.', ',');
+      return (lo === hi ? lo : lo + '–' + hi) + ' km/h';
+    })(),
+  ].map((x) => '<span>' + x + '</span>').join('');
+  $('kr-chart').innerHTML = chartHtml(r.segments, Math.max(...predkosci, 1));
+  $('kr-segments').innerHTML = listaSegmentow(r.segments);
+  // Nazwa domyślna jako podpowiedź, nie jako wpisana wartość — pusty formularz
+  // zostaje pusty, a i tak widać, jak plan się będzie nazywał.
+  $('kr-nazwa').placeholder = generujPlan(kreator).name;
+}
+
+$('btn-new-plan').addEventListener('click', () => goto('creator'));
+
+$('btn-save-plan').addEventListener('click', () => {
+  if (!podgladPlanu) return;
+  wlasnePlany = store.savePlan(podgladPlanu);
+  $('kr-nazwa').value = '';
+  renderPlans();
+  toast('Zapisano plan: ' + podgladPlanu.name);
+  openPlan(podgladPlanu.id);
+  odswiezKreator();
+});
+
+$('btn-delete-plan').addEventListener('click', () => {
+  const plan = selectedPlan;
+  if (!plan?.custom) return;
+  const pytanie = 'Usunąć plan „' + plan.name + '”?\n\n' +
+    'Historia odbytych treningów zostaje nietknięta.';
+  if (!confirm(pytanie)) return;
+  wlasnePlany = store.deletePlan(plan.id);
+  selectedPlan = null;
+  renderPlans();
+  goto('plans');
+  toast('Plan usunięty.');
+});
+
 // --------------------------------------------------------- szczegóły planu
+
+function listaSegmentow(segments) {
+  return segments
+    .map((s) => {
+      const inc = s.incline > 0 ? ' · ' + s.incline + '%'
+                : s.wantedIncline > 0 ? ' · <s>' + s.wantedIncline + '%</s>'
+                : '';
+      return '<div class="seg ' + s.kind + '"><i></i>' +
+      '<div class="nm">' + s.label + inc + '</div>' +
+      '<div class="sp">' + s.speed.toFixed(1).replace('.', ',') + '</div>' +
+      '<div class="tm">' + fmtTime(s.duration) + '</div></div>';
+    })
+    .join('');
+}
 
 function chartHtml(segments, maxSpeed) {
   // Szerokość słupka proporcjonalna do czasu, wysokość do prędkości.
@@ -196,7 +305,7 @@ function chartHtml(segments, maxSpeed) {
 }
 
 function openPlan(id) {
-  const plan = planById(id);
+  const plan = znajdzPlan(id);
   selectedPlan = resolvePlan(plan, profile);
   const r = selectedPlan;
 
@@ -211,17 +320,7 @@ function openPlan(id) {
   const maxSpeed = Math.max(...r.segments.map((s) => s.speed), 1);
   $('pd-chart').innerHTML = chartHtml(r.segments, maxSpeed);
 
-  $('pd-segments').innerHTML = r.segments
-    .map((s) => {
-      const inc = s.incline > 0 ? ' · ' + s.incline + '%'
-                : s.wantedIncline > 0 ? ' · <s>' + s.wantedIncline + '%</s>'
-                : '';
-      return '<div class="seg ' + s.kind + '"><i></i>' +
-      '<div class="nm">' + s.label + inc + '</div>' +
-      '<div class="sp">' + s.speed.toFixed(1).replace('.', ',') + '</div>' +
-      '<div class="tm">' + fmtTime(s.duration) + '</div></div>';
-    })
-    .join('');
+  $('pd-segments').innerHTML = listaSegmentow(r.segments);
 
   const warn = $('pd-warning');
   const notes = [];
@@ -248,12 +347,15 @@ function openPlan(id) {
   warn.innerHTML = notes.join('<br>');
   warn.classList.toggle('hidden', notes.length === 0);
 
+  // Usunąć można tylko własny plan — wbudowanych nie ma jak odtworzyć.
+  $('btn-delete-plan').classList.toggle('hidden', !plan.custom);
+
   goto('plan');
 }
 
 $('btn-start').addEventListener('click', async () => {
   if (!selectedPlan) return;
-  const plan = planById(selectedPlan.id);
+  const plan = znajdzPlan(selectedPlan.id);
   const rozpisany = engine.load(plan, profile);
   zbudujPierscienOdcinkow(rozpisany);
   // Komunikat z poprzedniego treningu zostawał na ekranie i wyglądał jak
@@ -905,7 +1007,9 @@ $('import-file').addEventListener('change', async (e) => {
     renderHistory();
     toast('Dodano ' + w.dodane + ' z ' + w.wPliku + ' ' +
           plural(w.wPliku, 'treningu', 'treningów', 'treningów') +
-          (w.pominiete ? ' (pominięto powtórek: ' + w.pominiete + ')' : '') + '.');
+          (w.pominiete ? ' (pominięto powtórek: ' + w.pominiete + ')' : '') + '.' +
+          (w.planowDodanych ? ' Dołożono też ' + w.planowDodanych + ' ' +
+            plural(w.planowDodanych, 'własny plan', 'własne plany', 'własnych planów') + '.' : ''));
   } catch (err) {
     toast('Import nieudany: ' + err.message, true);
   }
@@ -1093,7 +1197,7 @@ $('btn-clear-log').addEventListener('click', () => { $('log').textContent = ''; 
 function sprawdzSpojnoscPlikow() {
   const wymagane = [
     'run-kind', 'run-label', 'run-segtime', 'run-speed', 'run-target', 'run-mini',
-    'run-next', 'run-factor', 'btn-mode', 'btn-end', 'c-stop', 'c-pause', 'ring-fg', 'ring-segments',
+    'run-next', 'run-factor', 'kr-typy', 'kr-czas', 'kr-chart', 'btn-new-plan', 'btn-mode', 'btn-end', 'c-stop', 'c-pause', 'ring-fg', 'ring-segments',
   ];
   const brakuje = wymagane.filter((id) => !$(id));
   if (!brakuje.length) return;
@@ -1113,6 +1217,8 @@ sprawdzSpojnoscPlikow();
 if (!bleAvailable()) $('unsupported').classList.remove('hidden');
 renderVersion();
 applyRunMode();
+budujKreator();
+odswiezKreator();
 renderPlans();
 renderProfile();
 updateInclineUi();

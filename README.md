@@ -188,6 +188,33 @@ tools/serve.js        lokalny serwer do testów
 tools/make-icons.js   generator ikon PWA
 ```
 
+## Własne plany
+
+Przycisk „Ułóż własny plan" nad listą otwiera generator. Podajesz trzy rzeczy —
+długość, rodzaj treningu i intensywność — a resztę wylicza kod:
+
+| Rodzaj | Budowa rdzenia |
+|---|---|
+| Spalanie tłuszczu | falujące bloki po około cztery minuty, nisko w strefie tlenowej |
+| Interwały | serie o stałej długości przedzielone truchtem |
+| Wytrzymałość | jeden ciągły blok w równym tempie |
+| Narastający | kolejne stopnie w górę drabinki wysiłku, szczyt na końcu |
+| Marsz i regeneracja | spokojny marsz, przy wyższej intensywności lekko falujący |
+
+Długość rozgrzewki i schłodzenia rośnie wraz z treningiem (18% i 14% całości,
+z ograniczeniami), a przy bardzo krótkim treningu ustępuje miejsca części
+właściwej. Suma odcinków jest zawsze **dokładnie** równa zamówionemu czasowi —
+plan „na 40 minut" trwa czterdzieści minut co do sekundy.
+
+Prędkości zapisują się jako kotwice wysiłku, nie jako km/h — dokładnie tak samo
+jak w planach wbudowanych. Własny plan skaluje się więc razem z profilem
+i nie trzeba go przepisywać po zmianie formy.
+
+Plany leżą w localStorage (maksymalnie 50), wchodzą do kopii danych i wracają
+z importu; scalane są po identyfikatorze, więc ponowny import nic nie duplikuje.
+Na liście mają odznakę „mój" i własny filtr; usunąć można tylko własny plan,
+bo wbudowanego nie dałoby się odtworzyć.
+
 ## Ekran treningu: tryb kompaktowy i pełny
 
 Domyślny jest **tryb kompaktowy**: duże odliczanie odcinka, duża prędkość

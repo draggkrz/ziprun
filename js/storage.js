@@ -58,6 +58,31 @@ export function addHistory(entry) {
 
 export function clearHistory() { write(KEY_HISTORY, []); }
 
+// --- plany własne ---------------------------------------------------------
+
+const KEY_PLANS = 'ziprun.plans';
+const MAX_PLANS = 50;
+
+export function loadPlans() {
+  try {
+    const l = JSON.parse(localStorage.getItem(KEY_PLANS) || '[]');
+    return Array.isArray(l) ? l : [];
+  } catch { return []; }
+}
+
+/** Zapisuje plan; ten sam identyfikator zastępuje poprzednią wersję. */
+export function savePlan(plan) {
+  const lista = [plan, ...loadPlans().filter((p) => p.id !== plan.id)].slice(0, MAX_PLANS);
+  write(KEY_PLANS, lista);
+  return lista;
+}
+
+export function deletePlan(id) {
+  const lista = loadPlans().filter((p) => p.id !== id);
+  write(KEY_PLANS, lista);
+  return lista;
+}
+
 export const loadProtocol = () => read(KEY_PROTO, { driver: '', notes: '', templates: [] });
 export const saveProtocol = (p) => write(KEY_PROTO, p);
 
@@ -101,6 +126,7 @@ export function eksportDanych() {
     utworzono: new Date().toISOString(),
     profil: loadProfile(),
     ustawienia: loadSettings(),
+    plany: loadPlans(),
     historia: loadHistory(),
     zapisy: loadTraces(),
   };
@@ -125,6 +151,16 @@ export function importujDane(obj, { zProfilem = false } = {}) {
   const scalona = [...obecna, ...nowe].sort((a, b) => new Date(b.date) - new Date(a.date));
   write(KEY_HISTORY, scalona.slice(0, 200).map((e, i) => (i < 10 ? e : { ...e, samples: undefined })));
 
+  // Plany własne scalamy po identyfikatorze — tak samo jak treningi po dacie.
+  let planowDodanych = 0;
+  if (Array.isArray(obj.plany) && obj.plany.length) {
+    const obecneP = loadPlans();
+    const znaneP = new Set(obecneP.map((x) => x.id));
+    const noweP = obj.plany.filter((x) => x && x.id && Array.isArray(x.segments) && !znaneP.has(x.id));
+    planowDodanych = noweP.length;
+    if (noweP.length) write(KEY_PLANS, [...noweP, ...obecneP].slice(0, MAX_PLANS));
+  }
+
   let zapisowDodanych = 0;
   if (Array.isArray(obj.zapisy) && obj.zapisy.length) {
     const obecneZ = loadTraces();
@@ -147,6 +183,7 @@ export function importujDane(obj, { zProfilem = false } = {}) {
     dodane: nowe.length,
     pominiete: obj.historia.length - nowe.length,
     zapisowDodanych,
+    planowDodanych,
     profil: zProfilem,
   };
 }
