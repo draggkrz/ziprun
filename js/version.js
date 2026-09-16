@@ -10,9 +10,17 @@
 // typu "to jeszcze nie jest wypchnięte, więc dopiszę do poprzedniej wersji" —
 // taki wyjątek raz już doprowadził do sześciu commitów pod jednym numerem.
 
-export const VERSION = '1.11.0';
+export const VERSION = '1.11.1';
 
 export const CHANGELOG = [
+  {
+    version: '1.11.1',
+    date: '2026-09-16',
+    title: 'Zapis techniczny mówi, co naprawdę zamówiono',
+    changes: [
+      'Wpis o rozpoczęciu odcinka pokazywał prędkość z planu także wtedy, gdy aplikacja zamówiła inną — po przejęciu tempa z panelu bieżni. Teraz pokazuje prędkość zadaną, a plan obok w nawiasie.',
+    ],
+  },
   {
     version: '1.11.0',
     date: '2026-09-15',

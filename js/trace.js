@@ -110,8 +110,18 @@ export class Trace {
     });
 
     engine.on('state', (s) => this.add('trening', 'stan: ' + s));
-    engine.on('segment', (e) => this.add('segment', '#' + (e.index + 1) + ' ' + e.segment.label +
-      ' → ' + e.segment.speed.toFixed(1) + ' km/h, ' + e.segment.duration + ' s'));
+    // Prędkość zadaną bierzemy z silnika, a nie z planu. Po przejęciu tempa
+    // z panelu bieżni te dwie liczby się różnią, a log ma mówić, co aplikacja
+    // naprawdę zamówiła — inaczej sam siebie by prostował.
+    engine.on('segment', (e) => {
+      const cel = engine.targetSpeedFor(e.segment);
+      const plan = e.segment.speed;
+      const opis = Math.abs(cel - plan) < 0.05
+        ? cel.toFixed(1) + ' km/h'
+        : cel.toFixed(1) + ' km/h (plan ' + plan.toFixed(1) + ')';
+      this.add('segment', '#' + (e.index + 1) + ' ' + e.segment.label +
+        ' → ' + opis + ', ' + e.segment.duration + ' s');
+    });
     engine.on('msg', (m) => this.add('uwaga', m));
     return this;
   }
