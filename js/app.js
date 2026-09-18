@@ -28,6 +28,8 @@ let settings = store.loadSettings();
 let selectedPlan = null;
 let levelFilter = 'all';
 let wlasnePlany = store.loadPlans();
+let ulubione = store.loadFavourites();
+const czyUlubiony = (id) => ulubione.includes(id);
 
 /** Plany własne na początku listy — to one są świeże i to ich się szuka. */
 const wszystkiePlany = () => [...wlasnePlany, ...PLANS];
@@ -157,11 +159,21 @@ function announceUpdate() {
 function renderPlans() {
   const list = $('plan-list');
   list.innerHTML = '';
-  const visible = wszystkiePlany().filter((p) => levelFilter === 'all' ||
-    (levelFilter === 'own' ? !!p.custom : String(p.level) === levelFilter));
+  const pasuje = (p) => {
+    if (levelFilter === 'all') return true;
+    if (levelFilter === 'own') return !!p.custom;
+    if (levelFilter === 'fav') return czyUlubiony(p.id);
+    return String(p.level) === levelFilter;
+  };
+  // Ulubione idą na górę każdej listy — po to się je oznacza. Kolejność
+  // wewnątrz grup zostaje bez zmian, żeby lista nie tasowała się przy każdym
+  // wejściu.
+  const visible = wszystkiePlany().filter(pasuje)
+    .sort((a, b) => (czyUlubiony(b.id) ? 1 : 0) - (czyUlubiony(a.id) ? 1 : 0));
   if (!visible.length) {
-    list.innerHTML = '<p class="hint">Nie masz jeszcze własnych planów. ' +
-      'Ułóż pierwszy przyciskiem powyżej.</p>';
+    list.innerHTML = '<p class="hint">' + (levelFilter === 'fav'
+      ? 'Nie masz jeszcze ulubionych planów. Otwórz dowolny plan i dotknij „☆ Ulubiony”.'
+      : 'Nie masz jeszcze własnych planów. Ułóż pierwszy przyciskiem powyżej.') + '</p>';
     return;
   }
 
@@ -172,7 +184,8 @@ function renderPlans() {
     btn.className = 'plan l' + plan.level;
     btn.innerHTML =
       '<div class="focus">' + plan.focus + '</div>' +
-      '<h3>' + plan.name + (plan.custom ? '<span class="own">mój</span>' : '') + '</h3>' +
+      '<h3>' + (czyUlubiony(plan.id) ? '<span class="fav">★</span>' : '') + plan.name +
+        (plan.custom ? '<span class="own">mój</span>' : '') + '</h3>' +
       '<div class="row">' +
         '<span>' + Math.round(r.totalSeconds / 60) + ' min</span>' +
         '<span>~' + r.estDistanceKm.toFixed(1).replace('.', ',') + ' km</span>' +
@@ -262,6 +275,23 @@ $('btn-save-plan').addEventListener('click', () => {
   odswiezKreator();
 });
 
+function odswiezPrzyciskUlubionych() {
+  const b = $('btn-fav');
+  const jest = !!selectedPlan && czyUlubiony(selectedPlan.id);
+  b.setAttribute('aria-pressed', jest ? 'true' : 'false');
+  b.textContent = jest ? '★ Ulubiony' : '☆ Ulubiony';
+}
+
+$('btn-fav').addEventListener('click', () => {
+  if (!selectedPlan) return;
+  ulubione = store.toggleFavourite(selectedPlan.id);
+  odswiezPrzyciskUlubionych();
+  renderPlans();
+  toast(czyUlubiony(selectedPlan.id)
+    ? 'Dodano do ulubionych.'
+    : 'Usunięto z ulubionych.');
+});
+
 $('btn-delete-plan').addEventListener('click', () => {
   const plan = selectedPlan;
   if (!plan?.custom) return;
@@ -269,6 +299,7 @@ $('btn-delete-plan').addEventListener('click', () => {
     'Historia odbytych treningów zostaje nietknięta.';
   if (!confirm(pytanie)) return;
   wlasnePlany = store.deletePlan(plan.id);
+  ulubione = store.loadFavourites();
   selectedPlan = null;
   renderPlans();
   goto('plans');
@@ -349,6 +380,7 @@ function openPlan(id) {
 
   // Usunąć można tylko własny plan — wbudowanych nie ma jak odtworzyć.
   $('btn-delete-plan').classList.toggle('hidden', !plan.custom);
+  odswiezPrzyciskUlubionych();
 
   goto('plan');
 }
@@ -999,6 +1031,8 @@ $('import-file').addEventListener('change', async (e) => {
   try {
     const w = store.importujDane(dane, { zProfilem });
     if (zProfilem) { profile = store.loadProfile(); settings = store.loadSettings(); }
+    wlasnePlany = store.loadPlans();
+    ulubione = store.loadFavourites();
     speech.enabled = settings.voice;
     renderProfile();
     renderPlans();
@@ -1197,7 +1231,7 @@ $('btn-clear-log').addEventListener('click', () => { $('log').textContent = ''; 
 function sprawdzSpojnoscPlikow() {
   const wymagane = [
     'run-kind', 'run-label', 'run-segtime', 'run-speed', 'run-target', 'run-mini',
-    'run-next', 'run-factor', 'kr-typy', 'kr-czas', 'kr-chart', 'btn-new-plan', 'btn-mode', 'btn-end', 'c-stop', 'c-pause', 'ring-fg', 'ring-segments',
+    'run-next', 'run-factor', 'kr-typy', 'kr-czas', 'kr-chart', 'btn-new-plan', 'btn-fav', 'btn-mode', 'btn-end', 'c-stop', 'c-pause', 'ring-fg', 'ring-segments',
   ];
   const brakuje = wymagane.filter((id) => !$(id));
   if (!brakuje.length) return;

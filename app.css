@@ -105,6 +105,8 @@ button { font-family: inherit; cursor: pointer; }
 .chip {
   background: var(--bg2); border: 1px solid var(--line); color: var(--dim);
   border-radius: 999px; padding: 7px 13px; font-size: 13px; font-weight: 600;
+  /* „★ Ulubione" łamało się na dwie linie w środku pastylki. */
+  white-space: nowrap;
 }
 .chip.active { background: var(--accent); border-color: var(--accent); color: #180a03; }
 .chip-action { background: var(--bg2); color: var(--fg); }
@@ -578,3 +580,13 @@ button { font-family: inherit; cursor: pointer; }
   background: var(--bg2); border: 1px solid var(--line); color: var(--dim);
   font-weight: 600; letter-spacing: 0; text-transform: none;
 }
+
+/* ---------- ulubione ---------- */
+.head-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.fav-toggle { flex: 0 0 auto; }
+.fav-toggle[aria-pressed="true"] {
+  background: var(--accent); border-color: var(--accent); color: #180a03;
+}
+/* Gwiazdka na karcie planu jest tylko znakiem, nie przyciskiem - karta sama
+   w sobie jest przyciskiem, a przycisk w przycisku to nieprawidłowy HTML. */
+.plan .fav { color: var(--accent); margin-right: 6px; }

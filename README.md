@@ -215,6 +215,19 @@ z importu; scalane są po identyfikatorze, więc ponowny import nic nie duplikuj
 Na liście mają odznakę „mój" i własny filtr; usunąć można tylko własny plan,
 bo wbudowanego nie dałoby się odtworzyć.
 
+## Ulubione
+
+Każdy plan — wbudowany i własny — można oznaczyć przyciskiem „☆ Ulubiony"
+w jego szczegółach. Ulubione trafiają na górę listy niezależnie od wybranego
+filtra i mają własny filtr „★ Ulubione". Wewnątrz grup kolejność zostaje
+bez zmian, więc lista nie tasuje się przy każdym wejściu.
+
+Zapisywane są **same identyfikatory**, nie kopie planów: ulubiony plan
+wbudowany zostaje ulubiony także po zmianie jego odcinków w nowej wersji
+aplikacji. Usunięcie własnego planu czyści też jego wpis w ulubionych.
+Lista wchodzi do kopii danych i scala się przy imporcie, więc import
+z drugiego telefonu niczego tutaj nie odznacza.
+
 ## Ekran treningu: tryb kompaktowy i pełny
 
 Domyślny jest **tryb kompaktowy**: duże odliczanie odcinka, duża prędkość

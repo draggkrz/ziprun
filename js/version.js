@@ -10,9 +10,20 @@
 // typu "to jeszcze nie jest wypchnięte, więc dopiszę do poprzedniej wersji" —
 // taki wyjątek raz już doprowadził do sześciu commitów pod jednym numerem.
 
-export const VERSION = '1.12.1';
+export const VERSION = '1.13.0';
 
 export const CHANGELOG = [
+  {
+    version: '1.13.0',
+    date: '2026-09-18',
+    title: 'Ulubione plany',
+    changes: [
+      'Przycisk „☆ Ulubiony” w szczegółach planu. Ulubione trafiają na górę listy niezależnie od filtra i mają własny filtr „★ Ulubione”.',
+      'Gwiazdka na karcie planu pokazuje, co jest oznaczone, bez wchodzenia w szczegóły.',
+      'Ulubione wchodzą do kopii danych i scalają się przy imporcie — import z drugiego telefonu niczego nie odznacza.',
+      'Pastylki filtrów przestały łamać się na dwie linie; cały pasek jest przez to niższy.',
+    ],
+  },
   {
     version: '1.12.1',
     date: '2026-09-18',

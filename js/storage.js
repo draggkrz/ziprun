@@ -58,6 +58,28 @@ export function addHistory(entry) {
 
 export function clearHistory() { write(KEY_HISTORY, []); }
 
+// --- ulubione -------------------------------------------------------------
+
+const KEY_FAVS = 'ziprun.favourites';
+
+/**
+ * Same identyfikatory, nie kopie planów. Ulubiony plan wbudowany ma zostać
+ * ulubiony także wtedy, gdy zmienią się jego odcinki w nowej wersji aplikacji.
+ */
+export function loadFavourites() {
+  try {
+    const l = JSON.parse(localStorage.getItem(KEY_FAVS) || '[]');
+    return Array.isArray(l) ? l.filter((x) => typeof x === 'string') : [];
+  } catch { return []; }
+}
+
+export function toggleFavourite(id) {
+  const lista = loadFavourites();
+  const nowa = lista.includes(id) ? lista.filter((x) => x !== id) : [id, ...lista];
+  write(KEY_FAVS, nowa);
+  return nowa;
+}
+
 // --- plany własne ---------------------------------------------------------
 
 const KEY_PLANS = 'ziprun.plans';
@@ -99,6 +121,10 @@ export function savePlan(plan) {
 export function deletePlan(id) {
   const lista = loadPlans().filter((p) => p.id !== id);
   write(KEY_PLANS, lista);
+  // Bez tego po usunięciu planu zostawałby osierocony wpis w ulubionych,
+  // a licznik ulubionych pokazywałby plan, którego nie ma.
+  const ulubione = loadFavourites();
+  if (ulubione.includes(id)) write(KEY_FAVS, ulubione.filter((x) => x !== id));
   return lista;
 }
 
@@ -146,6 +172,7 @@ export function eksportDanych() {
     profil: loadProfile(),
     ustawienia: loadSettings(),
     plany: loadPlans(),
+    ulubione: loadFavourites(),
     historia: loadHistory(),
     zapisy: loadTraces(),
   };
@@ -171,6 +198,16 @@ export function importujDane(obj, { zProfilem = false } = {}) {
   write(KEY_HISTORY, scalona.slice(0, 200).map((e, i) => (i < 10 ? e : { ...e, samples: undefined })));
 
   // Plany własne scalamy po identyfikatorze — tak samo jak treningi po dacie.
+  // Ulubione scalamy, a nie zastępujemy — import z drugiego telefonu nie ma
+  // prawa odznaczyć planów ulubionych na tym.
+  let ulubionychDodanych = 0;
+  if (Array.isArray(obj.ulubione) && obj.ulubione.length) {
+    const obecneU = loadFavourites();
+    const noweU = obj.ulubione.filter((x) => typeof x === 'string' && !obecneU.includes(x));
+    ulubionychDodanych = noweU.length;
+    if (noweU.length) write(KEY_FAVS, [...noweU, ...obecneU]);
+  }
+
   let planowDodanych = 0;
   if (Array.isArray(obj.plany) && obj.plany.length) {
     const obecneP = loadPlans();
@@ -203,6 +240,7 @@ export function importujDane(obj, { zProfilem = false } = {}) {
     pominiete: obj.historia.length - nowe.length,
     zapisowDodanych,
     planowDodanych,
+    ulubionychDodanych,
     profil: zProfilem,
   };
 }

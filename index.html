@@ -34,6 +34,7 @@
   </div>
   <div id="plan-filters" class="filters">
     <button class="chip active" data-level="all">Wszystkie</button>
+    <button class="chip" data-level="fav">★ Ulubione</button>
     <button class="chip" data-level="1">Łatwe</button>
     <button class="chip" data-level="2">Średnie</button>
     <button class="chip" data-level="3">Mocne</button>
@@ -88,7 +89,10 @@
 
 <!-- ======================== SZCZEGÓŁY PLANU ======================== -->
 <section id="view-plan" class="view">
-  <button class="back" data-goto="plans">← Plany</button>
+  <div class="head-row">
+    <button class="back" data-goto="plans">← Plany</button>
+    <button id="btn-fav" class="chip fav-toggle" aria-pressed="false">☆ Ulubiony</button>
+  </div>
   <h1 id="pd-name"></h1>
   <div id="pd-meta" class="meta-row"></div>
   <p id="pd-desc" class="desc"></p>
