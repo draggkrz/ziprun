@@ -10,9 +10,19 @@
 // typu "to jeszcze nie jest wypchnięte, więc dopiszę do poprzedniej wersji" —
 // taki wyjątek raz już doprowadził do sześciu commitów pod jednym numerem.
 
-export const VERSION = '1.12.0';
+export const VERSION = '1.12.1';
 
 export const CHANGELOG = [
+  {
+    version: '1.12.1',
+    date: '2026-09-18',
+    title: 'Koniec z „Przerwą” w środku biegu',
+    changes: [
+      'Generator oznaczał wolniejszy z dwóch biegów jako przerwę, więc ekran treningu pisał „Przerwa” w trakcie czterominutowego biegu na ósemce. Przerwa to teraz tylko prawdziwa przerwa między seriami w interwałach.',
+      'Udział pracy w podglądzie kreatora pokazywał przez to 27% tam, gdzie pracą jest cały rdzeń treningu. Spalanie tłuszczu 30 min ma 68%.',
+      'Plany zapisane wcześniej poprawiają się same przy pierwszym wczytaniu — nie trzeba ich układać od nowa.',
+    ],
+  },
   {
     version: '1.12.0',
     date: '2026-09-16',

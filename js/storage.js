@@ -66,8 +66,27 @@ const MAX_PLANS = 50;
 export function loadPlans() {
   try {
     const l = JSON.parse(localStorage.getItem(KEY_PLANS) || '[]');
-    return Array.isArray(l) ? l : [];
+    return Array.isArray(l) ? naprawPrzerwy(l) : [];
   } catch { return []; }
+}
+
+/**
+ * Generator do wersji 1.12.0 oznaczał wolniejszy z dwóch biegów jako przerwę.
+ * Ekran treningu pisał wtedy „Przerwa" w trakcie czterominutowego biegu.
+ * Plan pamięta, z czego powstał, więc wiadomo, które przerwy były prawdziwe:
+ * tylko interwały je mają. Poprawka jest jednorazowa i od razu się zapisuje.
+ */
+function naprawPrzerwy(lista) {
+  let zmienione = false;
+  const poprawione = lista.map((plan) => {
+    if (!plan?.generator || plan.generator.typ === 'interwaly') return plan;
+    if (!plan.segments?.some((x) => x.kind === 'recovery')) return plan;
+    zmienione = true;
+    return { ...plan, segments: plan.segments.map((x) =>
+      (x.kind === 'recovery' ? { ...x, kind: 'work' } : x)) };
+  });
+  if (zmienione) write(KEY_PLANS, poprawione);
+  return poprawione;
 }
 
 /** Zapisuje plan; ten sam identyfikator zastępuje poprzednią wersję. */

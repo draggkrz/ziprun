@@ -123,13 +123,19 @@ const USTAWIENIA = {
   },
 };
 
-/** Falujące bloki: baza, fala, baza, fala... Blok trwa około czterech minut. */
+/**
+ * Falujące bloki: baza, fala, baza, fala... Blok trwa około czterech minut.
+ *
+ * Oba rodzaje bloków to praca. "recovery" w tej aplikacji znaczy przerwę
+ * między wysiłkami, a nie wolniejsze z dwóch temp biegu — przy złym rodzaju
+ * ekran treningu pisał „Przerwa" w trakcie czterominutowego biegu na ósemce.
+ */
 function rdzenFalujacy(rdzen, { baza, fala }, etykiety) {
   const n = Math.max(2, Math.round(rdzen / 240));
   return rozdziel(rdzen, n).map((t, i) => ({
     t,
     s: i % 2 === 0 ? baza : fala,
-    kind: i % 2 === 0 ? 'recovery' : 'work',
+    kind: 'work',
     label: i % 2 === 0 ? etykiety.baza : etykiety.fala,
   }));
 }
@@ -165,7 +171,8 @@ function rdzenNarastajacy(rdzen, { szczyt }) {
   return rozdziel(rdzen, n).map((t, i) => ({
     t,
     s: kroki[i],
-    kind: i === 0 ? 'recovery' : 'work',
+    // Pierwszy stopień jest najwolniejszy, ale to nadal stopień, a nie przerwa.
+    kind: 'work',
     label: 'Stopień ' + (i + 1) + ' z ' + n,
     cue: i === n - 1 ? 'Ostatni stopień — dowieź do końca' : undefined,
   }));
