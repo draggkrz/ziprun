@@ -215,6 +215,21 @@ z importu; scalane są po identyfikatorze, więc ponowny import nic nie duplikuj
 Na liście mają odznakę „mój" i własny filtr; usunąć można tylko własny plan,
 bo wbudowanego nie dałoby się odtworzyć.
 
+## Co widać bez czytania
+
+Karta planu na liście ma miniaturę profilu prędkości — ten sam wykres co
+w szczegółach, tylko niski. Kształt treningu (jeden długi blok, fala, gęste
+serie) rozpoznaje się rzutem oka, bez wchodzenia w szczegóły. Rysuje go ta sama
+funkcja co duży wykres, więc nie ma jak się rozjechać, i nie dokłada ani
+jednego pliku.
+
+Na ekranie treningu za pierścieniem świeci poświata w kolorze bieżącego
+odcinka: pomarańczowa przy pracy, zielona przy przerwie, niebieska przy
+rozgrzewce, szara przy schłodzeniu. Nagłówek odcinka ma ten sam kolor.
+Z odległości ramienia, przy drgającym obrazie, widać fazę treningu, zanim
+zdąży się przeczytać nazwę. Całość to jeden atrybut `data-kind` i kilka
+reguł CSS — żadnej grafiki.
+
 ## Ulubione
 
 Każdy plan — wbudowany i własny — można oznaczyć przyciskiem „☆ Ulubiony"

@@ -10,9 +10,19 @@
 // typu "to jeszcze nie jest wypchnięte, więc dopiszę do poprzedniej wersji" —
 // taki wyjątek raz już doprowadził do sześciu commitów pod jednym numerem.
 
-export const VERSION = '1.13.0';
+export const VERSION = '1.14.0';
 
 export const CHANGELOG = [
+  {
+    version: '1.14.0',
+    date: '2026-09-18',
+    title: 'Kształt planu i kolor odcinka',
+    changes: [
+      'Karta planu na liście pokazuje miniaturę profilu prędkości. Jeden długi blok, falę albo gęste serie widać teraz rzutem oka, bez wchodzenia w szczegóły.',
+      'Na ekranie treningu za pierścieniem świeci poświata w kolorze bieżącego odcinka — pomarańczowa przy pracy, zielona przy przerwie. Nagłówek odcinka ma ten sam kolor.',
+      'Obie zmiany to rysunek i CSS: aplikacja nie przybrała ani jednego pliku graficznego.',
+    ],
+  },
   {
     version: '1.13.0',
     date: '2026-09-18',

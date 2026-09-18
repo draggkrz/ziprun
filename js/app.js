@@ -191,7 +191,11 @@ function renderPlans() {
         '<span>~' + r.estDistanceKm.toFixed(1).replace('.', ',') + ' km</span>' +
         '<span>' + Math.min(...speeds).toFixed(1).replace('.', ',') + '–' +
           Math.max(...speeds).toFixed(1).replace('.', ',') + ' km/h</span>' +
-      '</div>';
+      '</div>' +
+      // Kształt treningu widać bez wchodzenia w szczegóły: równy bieg, fala,
+      // serie. Ten sam wykres co w szczegółach planu, tylko niski — dlatego
+      // rysuje go ta sama funkcja, a nie druga, która mogłaby się rozjechać.
+      '<div class="chart mini">' + chartHtml(r.segments, Math.max(...speeds, 1)) + '</div>';
     btn.addEventListener('click', () => openPlan(plan.id));
     list.appendChild(btn);
   }
@@ -518,6 +522,9 @@ engine.on('tick', (d) => {
     ? 'odcinek ' + pozycja
     : kind + ' · ' + pozycja;
   $('run-label').textContent = seg.label;
+  // Rodzaj odcinka steruje kolorem poświaty za pierścieniem i nagłówka.
+  // Reszta dzieje się w CSS — tutaj tylko mówimy, co się właśnie dzieje.
+  $('view-run').dataset.kind = seg.kind || 'work';
   $('run-segtime').textContent = fmtTime(d.segRemaining);
 
   // Łuk przyrasta w miarę trwania odcinka, tak samo jak zewnętrzny pierścień

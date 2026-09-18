@@ -590,3 +590,25 @@ button { font-family: inherit; cursor: pointer; }
 /* Gwiazdka na karcie planu jest tylko znakiem, nie przyciskiem - karta sama
    w sobie jest przyciskiem, a przycisk w przycisku to nieprawidłowy HTML. */
 .plan .fav { color: var(--accent); margin-right: 6px; }
+
+/* ---------- miniatura profilu na karcie planu ---------- */
+/* Ten sam wykres co w szczegółach planu, tylko niski. Słupki są węższe niż
+   piksel przy planie z trzydziestoma odcinkami, więc min-width zostaje. */
+.chart.mini { height: 26px; margin: 10px 0 0; gap: 1px; opacity: .9; border-radius: 3px; }
+.chart.mini .bar { border-radius: 1px 1px 0 0; }
+
+/* ---------- kolor bieżącego odcinka ---------- */
+/* Poświata za pierścieniem w kolorze odcinka. Z odległości ramienia widać,
+   czy trwa praca, czy przerwa, zanim zdąży się przeczytać nazwę. */
+#view-run { --puls: var(--work); }
+#view-run[data-kind="warmup"] { --puls: var(--warmup); }
+#view-run[data-kind="recovery"] { --puls: var(--recovery); }
+#view-run[data-kind="cooldown"] { --puls: var(--cooldown); }
+#view-run .kind { color: var(--puls); }
+.ring-wrap::before {
+  /* Ujemny z-index zamiast podnoszenia dzieci: .ring-center jest pozycjonowany
+     bezwzględnie i nadpisanie mu position rozsypywało wyśrodkowanie czasu. */
+  content: ''; position: absolute; inset: -18%; z-index: -1; pointer-events: none;
+  background: radial-gradient(closest-side, var(--puls), transparent 72%);
+  opacity: .2;
+}
