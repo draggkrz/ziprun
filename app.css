@@ -456,7 +456,11 @@ button { font-family: inherit; cursor: pointer; }
 /* Dystans i kalorie to liczby, na które zerka się w biegu - muszą być
    czytelne z odległości ramienia, nie tylko obecne. */
 .mini {
-  text-align: center; color: var(--dim); font-size: 22px;
+  /* Wiersz łamał się w środku pary "zostało 11:42" i liczba lądowała sama
+     w drugiej linii. Każda para jest osobnym elementem, więc zawija się
+     w całości albo wcale. */
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 18px;
+  color: var(--dim); font-size: 22px;
   font-variant-numeric: tabular-nums; margin-bottom: 12px;
 }
 .mini b { color: var(--fg); font-weight: 700; font-size: 26px; }
@@ -524,6 +528,13 @@ button { font-family: inherit; cursor: pointer; }
   }
   #view-run.compact .ring-wrap { margin-top: auto; }
   #view-run.compact .speed-block { margin-bottom: auto; }
+
+  /* Wiersz "Dalej" i przycisk końca treningu nosiły rozmiary z trybu
+     pełnego, gdzie konkurują z sześcioma kafelkami i sześcioma przyciskami
+     sterowania. W pionowym trybie kompaktowym są jedynymi elementami pod
+     prędkością i zostawało pod nimi ponad sześćdziesiąt pikseli pustki. */
+  #view-run.compact .next { font-size: 18px; padding: 14px; }
+  #view-run.compact .run-foot button { font-size: 18px; padding: 16px 8px; }
 }
 
 /* ---------- rozwijane wpisy historii ---------- */

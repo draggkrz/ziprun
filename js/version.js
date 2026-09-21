@@ -10,9 +10,19 @@
 // typu "to jeszcze nie jest wypchnięte, więc dopiszę do poprzedniej wersji" —
 // taki wyjątek raz już doprowadził do sześciu commitów pod jednym numerem.
 
-export const VERSION = '1.14.1';
+export const VERSION = '1.14.2';
 
 export const CHANGELOG = [
+  {
+    version: '1.14.2',
+    date: '2026-09-21',
+    title: 'Większe napisy na dole ekranu treningu',
+    changes: [
+      'W pionowym trybie kompaktowym wiersz „Dalej” i przycisk „Zakończ trening” mają teraz 18 px zamiast 14 px i wyższe pola. Pod przyciskiem zostawało ponad sześćdziesiąt pikseli pustki.',
+      'Wiersz z dystansem i kaloriami przestał się łamać w środku pary „zostało 11:42”. Każda liczba z podpisem zawija się teraz w całości.',
+      'Tryb pełny i układ poziomy zostają bez zmian — tam miejsca nie ma.',
+    ],
+  },
   {
     version: '1.14.1',
     date: '2026-09-21',

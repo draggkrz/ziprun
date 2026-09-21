@@ -551,10 +551,15 @@ engine.on('tick', (d) => {
   // odcinka. Dwie różne informacje, ale obie rosną w tę samą stronę.
   odswiezPierscienOdcinkow(d.totalElapsed);
   const kcal = d.metrics.kcal ?? Math.round(profile.weightKg * (d.distanceM / 1000) * 1.036);
-  $('run-mini').innerHTML =
-    '<b>' + (d.distanceM / 1000).toFixed(2).replace('.', ',') + '</b> km · ' +
-    '<b>' + kcal + '</b> kcal · zostało <b>' + fmtTime(d.totalRemaining) + '</b>' +
-    (d.metrics.hr ? ' · <b>' + d.metrics.hr + '</b> bpm' : '');
+  // Każda para liczba + podpis jest osobnym kawałkiem, żeby zawijanie nie
+  // rozdzieliło słowa "zostało" od czasu, który opisuje.
+  const czesci = [
+    '<b>' + (d.distanceM / 1000).toFixed(2).replace('.', ',') + '</b> km',
+    '<b>' + kcal + '</b> kcal',
+    'zostało <b>' + fmtTime(d.totalRemaining) + '</b>',
+  ];
+  if (d.metrics.hr) czesci.push('<b>' + d.metrics.hr + '</b> bpm');
+  $('run-mini').innerHTML = czesci.map((x) => '<span>' + x + '</span>').join('');
 
   const off = $('run-offset');
   if (engine.speedOffset !== 0) {
