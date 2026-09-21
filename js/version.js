@@ -10,9 +10,18 @@
 // typu "to jeszcze nie jest wypchnięte, więc dopiszę do poprzedniej wersji" —
 // taki wyjątek raz już doprowadził do sześciu commitów pod jednym numerem.
 
-export const VERSION = '1.14.0';
+export const VERSION = '1.14.1';
 
 export const CHANGELOG = [
+  {
+    version: '1.14.1',
+    date: '2026-09-21',
+    title: 'Pobrany zapis czeka na koniec hamowania',
+    changes: [
+      'Pobranie zapisu technicznego z ekranu podsumowania dawało plik urwany w połowie hamowania — bez potwierdzenia, że bieżnia stanęła. Teraz przycisk czeka, aż rejestrator się domknie, i mówi o tym napisem.',
+      'Plik zapisu kończy się znakiem nowej linii.',
+    ],
+  },
   {
     version: '1.14.0',
     date: '2026-09-18',

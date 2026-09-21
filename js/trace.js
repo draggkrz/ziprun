@@ -13,6 +13,20 @@ import { STATE } from './engine.js';
 const CAP = 20000;          // twardy limit wpisów, żeby nie zjeść pamięci
 const METRIC_MIN_GAP_MS = 900; // pomiary rzadziej niż raz na sekundę nie mają sensu
 
+/**
+ * Czeka, aż rejestrator się zamknie. Po komendzie zatrzymania pas hamuje
+ * jeszcze kilka sekund i te sekundy też są zapisywane — plik pobrany
+ * wcześniej urywa się w połowie hamowania, bez potwierdzenia, że bieżnia
+ * w ogóle stanęła. Zwraca true, jeśli zapis zdążył się domknąć.
+ */
+export async function poczekajNaKoniecZapisu(trace, maxMs = 20000, krokMs = 300) {
+  const koniec = Date.now() + maxMs;
+  while (trace.recording && Date.now() < koniec) {
+    await new Promise((r) => setTimeout(r, krokMs));
+  }
+  return !trace.recording;
+}
+
 export class Trace {
   constructor() {
     this.events = [];
@@ -144,7 +158,9 @@ export class Trace {
       L.push([m.t, m.workout, m.speed, m.target, m.distance, m.kcal, m.hr, m.incline, m.segment]
         .map((x) => (x === null || x === undefined ? '' : x)).join(';'));
     }
-    return L.join('\n');
+    // Znak nowej linii na końcu — bez niego ostatni pomiar sklejał się z tym,
+    // co po nim wypisze konsola albo następny plik przy sklejaniu.
+    return L.join('\n') + '\n';
   }
 
   /**

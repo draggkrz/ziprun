@@ -6,7 +6,7 @@ import { PLANS, planById, resolvePlan, anchorSpeed, fmtTime, KIND_LABEL, cooperV
 import { WorkoutEngine, STATE } from './engine.js';
 import { Speech, ScreenKeeper } from './speech.js';
 import { parseHex, KNOWN_NAMES } from './ble/uuids.js';
-import { Trace } from './trace.js';
+import { Trace, poczekajNaKoniecZapisu } from './trace.js';
 import { VERSION, CHANGELOG, currentEntry } from './version.js';
 import { TYPY, INTENSYWNOSCI, MIN_MINUT, MAX_MINUT, generujPlan } from './generator.js';
 import * as store from './storage.js';
@@ -893,8 +893,21 @@ function renderTraces() {
   );
 }
 
-$('btn-export-trace').addEventListener('click', () => {
+$('btn-export-trace').addEventListener('click', async (e) => {
   if (!trace.metrics.length && !trace.events.length) return toast('Brak zapisu do wyeksportowania.', true);
+  // Rejestrator dopisuje jeszcze przez kilka sekund po komendzie zatrzymania,
+  // bo pas hamuje. Dotknięcie przycisku w tym czasie dawało plik urwany
+  // w połowie hamowania, bez potwierdzenia, że bieżnia w ogóle stanęła —
+  // widać to w zapisie z 19 września, który kończy się na 1,7 km/h.
+  const przycisk = e.currentTarget;
+  if (trace.recording) {
+    const napis = przycisk.textContent;
+    przycisk.disabled = true;
+    przycisk.textContent = 'Czekam, aż pas stanie…';
+    await poczekajNaKoniecZapisu(trace);
+    przycisk.disabled = false;
+    przycisk.textContent = napis;
+  }
   downloadText(
     'ziprun-trening-' + stamp(lastSummary?.date) + '.txt',
     trace.toText({ wynik: opisWyniku(lastSummary) })
