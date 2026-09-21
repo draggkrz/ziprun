@@ -10,9 +10,19 @@
 // typu "to jeszcze nie jest wypchnięte, więc dopiszę do poprzedniej wersji" —
 // taki wyjątek raz już doprowadził do sześciu commitów pod jednym numerem.
 
-export const VERSION = '1.14.2';
+export const VERSION = '1.15.0';
 
 export const CHANGELOG = [
+  {
+    version: '1.15.0',
+    date: '2026-09-21',
+    title: 'Odliczanie do zmiany tempa w pierścieniu',
+    changes: [
+      'Przez ostatnie pięć sekund odcinka środek pierścienia odlicza 5, 4, 3, 2, 1 zamiast pokazywać czas. Pod cyfrą stoi nazwa i prędkość odcinka, który nadchodzi.',
+      'Cyfra ma kolor nadchodzącego odcinka — zielona, gdy idzie przerwa, pomarańczowa, gdy praca. Widać to, zanim zdążysz przeczytać podpis.',
+      'Napis „Rozpędzam do…” zniknął: pole pod prędkością wróciło do jednej roli i mówi po prostu, co będzie dalej.',
+    ],
+  },
   {
     version: '1.14.2',
     date: '2026-09-21',

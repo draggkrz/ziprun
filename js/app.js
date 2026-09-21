@@ -423,6 +423,11 @@ $('btn-start').addEventListener('click', async () => {
 // ------------------------------------------------------------ ekran treningu
 
 // Obwody obu pierścieni: 2*pi*80 (wewnętrzny) i 2*pi*95 (zewnętrzny).
+// Ile sekund przed zmianą prędkości środek pierścienia przechodzi
+// w odliczanie. Dziesięć sekund to już zapowiedź głosowa, trzy byłoby za
+// późno, żeby się przygotować.
+const ODLICZANIE_S = 5;
+
 const RING = 502.65;
 const RING_TOTAL = 596.90;
 const PROMIEN_ZEWN = 95;
@@ -525,7 +530,22 @@ engine.on('tick', (d) => {
   // Rodzaj odcinka steruje kolorem poświaty za pierścieniem i nagłówka.
   // Reszta dzieje się w CSS — tutaj tylko mówimy, co się właśnie dzieje.
   $('view-run').dataset.kind = seg.kind || 'work';
-  $('run-segtime').textContent = fmtTime(d.segRemaining);
+
+  // Przez ostatnie sekundy odcinka środek pierścienia przestaje pokazywać
+  // czas, a zaczyna odliczać do nowego tempa. Wcześniej mówił o tym tylko
+  // mały napis pod prędkością — za mało, żeby zdążyć się przygotować.
+  const nadchodzi = engine.nextSegment;
+  const odliczanie = !!nadchodzi && d.segRemaining <= ODLICZANIE_S;
+  $('view-run').classList.toggle('odliczanie', odliczanie);
+  if (odliczanie) {
+    $('view-run').dataset.next = nadchodzi.kind || 'work';
+    $('run-segtime').textContent = String(Math.max(1, Math.ceil(d.segRemaining)));
+    $('ring-sub').textContent = nadchodzi.label + ' · ' +
+      engine.targetSpeedFor(nadchodzi).toFixed(1).replace('.', ',') + ' km/h';
+  } else {
+    $('run-segtime').textContent = fmtTime(d.segRemaining);
+    $('ring-sub').textContent = 'do końca odcinka';
+  }
 
   // Łuk przyrasta w miarę trwania odcinka, tak samo jak zewnętrzny pierścień
   // całego treningu — dwa postępy obok siebie muszą iść w tę samą stronę.
@@ -580,21 +600,14 @@ engine.on('tick', (d) => {
   // Pas zmienia prędkość zanim zegar dojdzie do końca odcinka, żeby interwał
   // zaczynał się już na docelowym tempie. Bez tego komunikatu ekran pokazywałby
   // stary odcinek i stary cel, choć bieżnia robi już co innego.
-  const next = engine.nextSegment;
-  const nextBox = $('run-next');
-  if (d.ramping) {
-    nextBox.classList.add('ramping');
-    nextBox.innerHTML =
-      '<b>' + (d.ramping.up ? 'Rozpędzam' : 'Zwalniam') + ' do ' +
-      d.ramping.target.toFixed(1).replace('.', ',') + ' km/h</b><br>' +
-      d.ramping.label + ' za ' + Math.max(1, Math.ceil(d.segRemaining)) + ' s';
-  } else {
-    nextBox.classList.remove('ramping');
-    nextBox.innerHTML = next
-      ? 'Dalej: <b>' + next.label + '</b> · ' + engine.targetSpeedFor(next).toFixed(1).replace('.', ',') +
-        ' km/h · ' + fmtTime(next.duration)
-      : 'Ostatni odcinek';
-  }
+  // Odkąd zmianę tempa odlicza pierścień, to pudełko ma jedną rolę: mówi,
+  // co będzie dalej. Wcześniej w trakcie rampy zmieniało się w komunikat
+  // „Rozpędzam do…", czyli dublowało informację małym drukiem.
+  $('run-next').innerHTML = nadchodzi
+    ? 'Dalej: <b>' + nadchodzi.label + '</b> · ' +
+      engine.targetSpeedFor(nadchodzi).toFixed(1).replace('.', ',') +
+      ' km/h · ' + fmtTime(nadchodzi.duration)
+    : 'Ostatni odcinek';
 });
 
 engine.on('state', (s) => {

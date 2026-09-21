@@ -350,11 +350,6 @@ button { font-family: inherit; cursor: pointer; }
 
 /* Trwa zmiana prędkości przed kolejnym odcinkiem — pas robi już co innego,
    niż odlicza zegar, więc pasek musi to wyraźnie powiedzieć. */
-.next.ramping {
-  border-color: var(--accent); color: var(--accent2);
-  background: #2a1509;
-}
-.next.ramping b { color: var(--accent); }
 
 /* ---------- ekran treningu w orientacji poziomej ---------- */
 /* Telefon położony na bok ma około 375 px wysokości — pionowa kolumna nie ma
@@ -622,4 +617,31 @@ button { font-family: inherit; cursor: pointer; }
   content: ''; position: absolute; inset: -18%; z-index: -1; pointer-events: none;
   background: radial-gradient(closest-side, var(--puls), transparent 72%);
   opacity: .2;
+}
+
+/* ---------- odliczanie do zmiany tempa ---------- */
+/* Przez ostatnie sekundy odcinka środek pierścienia liczy w dół zamiast
+   pokazywać czas. Cyfra ma kolor odcinka, który nadchodzi, więc zanim
+   przeczytasz podpis, wiesz już, czy będzie mocniej, czy luźniej. */
+#view-run { --nast: var(--work); }
+#view-run[data-next="warmup"] { --nast: var(--warmup); }
+#view-run[data-next="recovery"] { --nast: var(--recovery); }
+#view-run[data-next="cooldown"] { --nast: var(--cooldown); }
+
+#view-run.odliczanie .segtime { color: var(--nast); font-size: 84px; line-height: 1; }
+#view-run.odliczanie.compact .segtime { font-size: 96px; }
+/* Bez jawnej kolumny siatka bierze szerokość od najszerszego dziecka, czyli
+   od samej cyfry — procentowe ograniczenie podpisu liczyło się wtedy od 141
+   pikseli i łamało go na dwie linie. */
+#view-run.odliczanie .ring-center { grid-template-columns: minmax(0, 1fr); }
+#view-run.odliczanie .ring-sub {
+  color: var(--fg); font-weight: 700; font-size: 14px;
+  text-transform: none; letter-spacing: 0; margin: 4px auto 0;
+  max-width: 82%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* W poziomie pierścień jest niższy, więc cyfra musi zejść razem z nim. */
+@media (orientation: landscape) and (max-height: 560px) {
+  #view-run.odliczanie .segtime,
+  #view-run.odliczanie.compact .segtime { font-size: 72px; }
+  #view-run.odliczanie .ring-sub { font-size: 12px; }
 }

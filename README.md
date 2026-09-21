@@ -230,6 +230,20 @@ Z odległości ramienia, przy drgającym obrazie, widać fazę treningu, zanim
 zdąży się przeczytać nazwę. Całość to jeden atrybut `data-kind` i kilka
 reguł CSS — żadnej grafiki.
 
+## Odliczanie do zmiany tempa
+
+Przez ostatnie pięć sekund odcinka środek pierścienia przestaje pokazywać
+czas i zaczyna odliczać: **5, 4, 3, 2, 1**, a pod cyfrą stoi nazwa i prędkość
+odcinka, który nadchodzi. Cyfra ma kolor tego nadchodzącego odcinka, więc
+zanim przeczytasz podpis, wiesz już, czy będzie mocniej, czy luźniej.
+
+Pięć sekund, bo dziesięć to już zapowiedź głosowa, a trzy byłoby za późno,
+żeby zdążyć się przygotować. Odliczanie nie pojawia się na ostatnim odcinku —
+tam nie ma nic dalej.
+
+Wcześniej mówił o tym tylko mały napis „Rozpędzam do…" pod prędkością.
+To pole wróciło do jednej roli: mówi, co będzie dalej.
+
 ## Ulubione
 
 Każdy plan — wbudowany i własny — można oznaczyć przyciskiem „☆ Ulubiony"
