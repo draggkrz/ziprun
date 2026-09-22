@@ -234,8 +234,9 @@ reguł CSS — żadnej grafiki.
 
 Przez ostatnie pięć sekund odcinka środek pierścienia przestaje pokazywać
 czas i zaczyna odliczać: **5, 4, 3, 2, 1**, a pod cyfrą stoi nazwa i prędkość
-odcinka, który nadchodzi. Cyfra ma kolor tego nadchodzącego odcinka, więc
-zanim przeczytasz podpis, wiesz już, czy będzie mocniej, czy luźniej.
+odcinka, który nadchodzi. Sama cyfra zostaje biała — kolorowanie jej barwą
+nadchodzącego odcinka mieszało się z poświatą wokół pierścienia i sprawiało,
+że najważniejsza liczba na ekranie zmieniała wygląd co odcinek.
 
 Pięć sekund, bo dziesięć to już zapowiedź głosowa, a trzy byłoby za późno,
 żeby zdążyć się przygotować. Odliczanie nie pojawia się na ostatnim odcinku —

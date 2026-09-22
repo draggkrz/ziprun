@@ -621,14 +621,11 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ---------- odliczanie do zmiany tempa ---------- */
 /* Przez ostatnie sekundy odcinka środek pierścienia liczy w dół zamiast
-   pokazywać czas. Cyfra ma kolor odcinka, który nadchodzi, więc zanim
-   przeczytasz podpis, wiesz już, czy będzie mocniej, czy luźniej. */
-#view-run { --nast: var(--work); }
-#view-run[data-next="warmup"] { --nast: var(--warmup); }
-#view-run[data-next="recovery"] { --nast: var(--recovery); }
-#view-run[data-next="cooldown"] { --nast: var(--cooldown); }
-
-#view-run.odliczanie .segtime { color: var(--nast); font-size: 84px; line-height: 1; }
+   pokazywać czas. Cyfra zostaje biała: kolorowanie jej barwą nadchodzącego
+   odcinka mieszało się z poświatą wokół pierścienia, a przy okazji sprawiało,
+   że najważniejsza liczba na ekranie zmieniała wygląd co odcinek. Rodzaj
+   nadchodzącego odcinka i tak jest napisany pod spodem. */
+#view-run.odliczanie .segtime { font-size: 84px; line-height: 1; }
 #view-run.odliczanie.compact .segtime { font-size: 96px; }
 /* Bez jawnej kolumny siatka bierze szerokość od najszerszego dziecka, czyli
    od samej cyfry — procentowe ograniczenie podpisu liczyło się wtedy od 141

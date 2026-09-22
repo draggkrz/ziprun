@@ -10,9 +10,17 @@
 // typu "to jeszcze nie jest wypchnięte, więc dopiszę do poprzedniej wersji" —
 // taki wyjątek raz już doprowadził do sześciu commitów pod jednym numerem.
 
-export const VERSION = '1.15.0';
+export const VERSION = '1.15.1';
 
 export const CHANGELOG = [
+  {
+    version: '1.15.1',
+    date: '2026-09-22',
+    title: 'Odliczanie znowu białe',
+    changes: [
+      'Cyfra odliczania w pierścieniu przestała zmieniać kolor na pomarańczowy i zielony. Najważniejsza liczba na ekranie ma wyglądać tak samo przez cały trening, a rodzaj nadchodzącego odcinka i tak jest napisany pod spodem.',
+    ],
+  },
   {
     version: '1.15.0',
     date: '2026-09-21',

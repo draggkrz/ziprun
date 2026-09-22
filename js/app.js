@@ -538,7 +538,6 @@ engine.on('tick', (d) => {
   const odliczanie = !!nadchodzi && d.segRemaining <= ODLICZANIE_S;
   $('view-run').classList.toggle('odliczanie', odliczanie);
   if (odliczanie) {
-    $('view-run').dataset.next = nadchodzi.kind || 'work';
     $('run-segtime').textContent = String(Math.max(1, Math.ceil(d.segRemaining)));
     $('ring-sub').textContent = nadchodzi.label + ' · ' +
       engine.targetSpeedFor(nadchodzi).toFixed(1).replace('.', ',') + ' km/h';
