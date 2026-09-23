@@ -10,9 +10,19 @@
 // typu "to jeszcze nie jest wypchnięte, więc dopiszę do poprzedniej wersji" —
 // taki wyjątek raz już doprowadził do sześciu commitów pod jednym numerem.
 
-export const VERSION = '1.15.2';
+export const VERSION = '1.15.3';
 
 export const CHANGELOG = [
+  {
+    version: '1.15.3',
+    date: '2026-09-23',
+    title: 'Zapis czeka na potwierdzenie z bieżni',
+    changes: [
+      'Rejestrator czeka teraz nie tylko na zatrzymanie pasa, ale i na ramkę, którą bieżnia potwierdza zatrzymanie — do trzech sekund. Wcześniej trafiała do zapisu raz na dwa razy, bo przychodzi dokładnie na granicy poprzedniego zapasu.',
+      'Przycisk pobrania zapisu i tak czekał na domknięcie rejestratora, więc jedyną zmianą dla Ciebie są najwyżej trzy sekundy z napisem „Czekam, aż pas stanie…”.',
+      'W trybie prowadzenia, bez połączonej bieżni, nie ma na co czekać — zapis domyka się od razu.',
+    ],
+  },
   {
     version: '1.15.2',
     date: '2026-09-23',

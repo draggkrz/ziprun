@@ -626,10 +626,21 @@ engine.on('state', (s) => {
   if (s === STATE.FINISHED || s === STATE.ABORTED) keeper.release();
 });
 
+// Kiedy bieżnia ostatnio potwierdziła zatrzymanie własną ramką statusu.
+// Nasłuch rejestrujemy raz, bo warstwa BLE nie ma wyrejestrowywania.
+let potwierdzonyStopTs = 0;
+tm.on('status', (s) => { if (s.opcode === 0x02) potwierdzonyStopTs = Date.now(); });
+
+// Ile czekamy na tę ramkę po tym, jak pas już stanie. Bieżnia wysyła ją
+// mniej więcej w chwili zatrzymania, czyli dokładnie na granicy poprzedniego
+// zapasu — raz zdążyła, raz nie. Trzy sekundy zamykają tę loterię.
+const POTWIERDZENIE_S = 3;
+
 /**
- * Czeka, aż bieżnia zwolni do zera. Hamowanie trwa tym dłużej, im szybciej
- * biegłeś (około pół km/h na sekundę), więc sztywne opóźnienie albo ucinałoby
- * zapis, albo kazało czekać bez potrzeby. Bez połączenia kończy od razu.
+ * Czeka, aż bieżnia zwolni do zera i potwierdzi to własną ramką statusu.
+ * Hamowanie trwa tym dłużej, im szybciej biegłeś (około pół km/h na sekundę),
+ * więc sztywne opóźnienie albo ucinałoby zapis, albo kazało czekać bez
+ * potrzeby. Bez połączenia kończy od razu.
  */
 async function waitForBeltStop(maxS = 30) {
   const t0 = Date.now();
@@ -637,8 +648,18 @@ async function waitForBeltStop(maxS = 30) {
     if ((tm.metrics?.speed ?? 0) <= 0.1) break;
     await new Promise((r) => setTimeout(r, 500));
   }
-  // Chwila zapasu na potwierdzenie statusu z bieżni.
-  await new Promise((r) => setTimeout(r, 800));
+  // Pas stoi — teraz czekamy jeszcze na potwierdzenie z bieżni, ale nie
+  // dłużej niż POTWIERDZENIE_S: bez połączenia albo przy protokole, który
+  // takiej ramki nie wysyła, nie ma na co czekać w nieskończoność.
+  // Bez połączenia nie ma od kogo czekać na potwierdzenie — trening
+  // w trybie prowadzenia kończyłby się wtedy trzema sekundami zwłoki
+  // za nic.
+  const t1 = Date.now();
+  while (tm.connected && potwierdzonyStopTs < t0 && Date.now() - t1 < POTWIERDZENIE_S * 1000) {
+    await new Promise((r) => setTimeout(r, 200));
+  }
+  // Chwila zapasu, żeby ramka zdążyła trafić do zapisu.
+  await new Promise((r) => setTimeout(r, 400));
 }
 
 /**
