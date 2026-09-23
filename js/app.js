@@ -339,6 +339,41 @@ function chartHtml(segments, maxSpeed) {
     .join('');
 }
 
+/**
+ * Ostrzeżenia zależą od tego, co bieżnia potrafi TERAZ, a nie od tego, co
+ * potrafiła w chwili otwarcia planu. Bez osobnej funkcji, wołanej też po
+ * połączeniu, na ekranie zostawał napis „Bieżnia nie jest połączona"
+ * mimo połączonej bieżni — widać to na zrzucie z 22 września.
+ */
+function odswiezOstrzezenia() {
+  const plan = selectedPlan;
+  if (!plan) return;
+  const notes = [];
+  if (plan.manual) notes.push('Ten plan nie ustawia prędkości automatycznie — tempo dobierasz sam.');
+  if (!tm.connected) notes.push('Bieżnia nie jest połączona. Możesz uruchomić trening w trybie prowadzenia, ale bez automatycznego sterowania.');
+  else if (!tm.caps.speed) notes.push('Ta bieżnia nie przyjmuje komend prędkości — dostaniesz tylko zapowiedzi, co ustawić.');
+
+  // Porównujemy z nachyleniem ZAŁOŻONYM w planie, nie z już przyciętym do zera —
+  // inaczej ostrzeżenie nigdy by się nie pokazało.
+  const maxWanted = Math.max(0, ...plan.segments.map((s) => s.wantedIncline || 0));
+  if (maxWanted > profile.maxInclineCap) {
+    notes.push(
+      'Plan zakłada nachylenie do ' + maxWanted + '%, a Twoja bieżnia nie ma sterowanej pochylni — ' +
+      'odcinki pod górę pobiegniesz płasko. Wysiłek będzie zauważalnie mniejszy niż zakładany.'
+    );
+  }
+
+  // Górne kotwice zlewają się w jedno, gdy plan żąda więcej, niż bieżnia potrafi.
+  const capped = plan.segments.filter((s) => s.speed >= profile.maxSpeedCap).length;
+  if (capped > 2 && tm.connected) {
+    notes.push('Część odcinków została przycięta do maksymalnej prędkości bieżni (' +
+               profile.maxSpeedCap + ' km/h).');
+  }
+  const warn = $('pd-warning');
+  warn.innerHTML = notes.join('<br>');
+  warn.classList.toggle('hidden', notes.length === 0);
+}
+
 function openPlan(id) {
   const plan = znajdzPlan(id);
   selectedPlan = resolvePlan(plan, profile);
@@ -357,30 +392,7 @@ function openPlan(id) {
 
   $('pd-segments').innerHTML = listaSegmentow(r.segments);
 
-  const warn = $('pd-warning');
-  const notes = [];
-  if (plan.manual) notes.push('Ten plan nie ustawia prędkości automatycznie — tempo dobierasz sam.');
-  if (!tm.connected) notes.push('Bieżnia nie jest połączona. Możesz uruchomić trening w trybie prowadzenia, ale bez automatycznego sterowania.');
-  else if (!tm.caps.speed) notes.push('Ta bieżnia nie przyjmuje komend prędkości — dostaniesz tylko zapowiedzi, co ustawić.');
-
-  // Porównujemy z nachyleniem ZAŁOŻONYM w planie, nie z już przyciętym do zera —
-  // inaczej ostrzeżenie nigdy by się nie pokazało.
-  const maxWanted = Math.max(0, ...r.segments.map((s) => s.wantedIncline || 0));
-  if (maxWanted > profile.maxInclineCap) {
-    notes.push(
-      'Plan zakłada nachylenie do ' + maxWanted + '%, a Twoja bieżnia nie ma sterowanej pochylni — ' +
-      'odcinki pod górę pobiegniesz płasko. Wysiłek będzie zauważalnie mniejszy niż zakładany.'
-    );
-  }
-
-  // Górne kotwice zlewają się w jedno, gdy plan żąda więcej, niż bieżnia potrafi.
-  const capped = r.segments.filter((s) => s.speed >= profile.maxSpeedCap).length;
-  if (capped > 2 && tm.connected) {
-    notes.push('Część odcinków została przycięta do maksymalnej prędkości bieżni (' +
-               profile.maxSpeedCap + ' km/h).');
-  }
-  warn.innerHTML = notes.join('<br>');
-  warn.classList.toggle('hidden', notes.length === 0);
+  odswiezOstrzezenia();
 
   // Usunąć można tylko własny plan — wbudowanych nie ma jak odtworzyć.
   $('btn-delete-plan').classList.toggle('hidden', !plan.custom);
@@ -1127,6 +1139,9 @@ tm.on('state', (e) => {
       tm.reconnect().then((ok) => { if (ok) toast('Połączenie odzyskane — wznów trening.'); });
     }
   }
+  // Ostrzeżenia na ekranie planu mówią o bieżni, więc muszą nadążać za nią,
+  // a nie za chwilą, w której plan został otwarty.
+  odswiezOstrzezenia();
 });
 
 function renderCaps(caps) {

@@ -10,9 +10,17 @@
 // typu "to jeszcze nie jest wypchnięte, więc dopiszę do poprzedniej wersji" —
 // taki wyjątek raz już doprowadził do sześciu commitów pod jednym numerem.
 
-export const VERSION = '1.15.1';
+export const VERSION = '1.15.2';
 
 export const CHANGELOG = [
+  {
+    version: '1.15.2',
+    date: '2026-09-23',
+    title: 'Ostrzeżenie o bieżni nadąża za połączeniem',
+    changes: [
+      'Napis „Bieżnia nie jest połączona” zostawał na ekranie planu po połączeniu bieżni — liczył się stan z chwili otwarcia planu, a nie obecny. Ostrzeżenia odświeżają się teraz przy każdej zmianie połączenia.',
+    ],
+  },
   {
     version: '1.15.1',
     date: '2026-09-22',
