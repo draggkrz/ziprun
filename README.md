@@ -201,6 +201,12 @@ długość, rodzaj treningu i intensywność — a resztę wylicza kod:
 | Narastający | kolejne stopnie w górę drabinki wysiłku, szczyt na końcu |
 | Marsz i regeneracja | spokojny marsz, przy wyższej intensywności lekko falujący |
 
+Rozgrzewka i schłodzenie dostają tempo **o szczebel niższe niż najlżejszy
+odcinek treningu właściwego**, ale nigdy wyższe niż marsz. Przed biegiem
+rozgrzewką zostaje więc marsz, a przed treningiem marszowym — spacer.
+Wcześniej rozgrzewka miała zawsze tempo marszu, przez co w planie marszowym
+sześć minut „rozgrzewki" szło dokładnie tym tempem, co potem cały trening.
+
 Długość rozgrzewki i schłodzenia rośnie wraz z treningiem (18% i 14% całości,
 z ograniczeniami), a przy bardzo krótkim treningu ustępuje miejsca części
 właściwej. Suma odcinków jest zawsze **dokładnie** równa zamówionemu czasowi —

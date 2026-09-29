@@ -95,6 +95,27 @@ const nowyId = () => 'wlasny-' + Date.now().toString(36) + '-' + (licznik++).toS
 // Drabinka wysiłku od truchtu w górę — używana przez plan narastający.
 const DRABINKA = ['jog', 'easy', 'steady', 'tempo', 'threshold', 'vo2'];
 
+// Pełna drabinka, od najwolniejszego. Służy do dobrania rozgrzewki
+// i schłodzenia poniżej najlżejszego odcinka właściwego treningu.
+const PELNA_DRABINKA = ['stroll', 'walk', 'brisk', 'jog', 'easy', 'steady', 'tempo', 'threshold', 'vo2'];
+
+/**
+ * Kotwica ram treningu. Marsz zaczyna się od marszu, więc rozgrzewka „walk"
+ * miała dokładnie to samo tempo co trening — sześć minut rozgrzewki biegło
+ * w tempie, w którym potem szedł cały trening. Bierzemy więc szczebel niżej
+ * niż najlżejszy odcinek rdzenia, ale nigdy wyżej niż marsz: przed biegiem
+ * rozgrzewką ma zostać marsz, a nie trucht.
+ */
+export function kotwicaRam(srodek) {
+  const najlzejszy = srodek
+    .map((s) => PELNA_DRABINKA.indexOf(s.s))
+    .filter((i) => i >= 0)
+    .reduce((a, b) => Math.min(a, b), PELNA_DRABINKA.length - 1);
+  const nizej = PELNA_DRABINKA[Math.max(0, najlzejszy - 1)];
+  const domyslna = PELNA_DRABINKA.indexOf('walk');
+  return PELNA_DRABINKA.indexOf(nizej) < domyslna ? nizej : 'walk';
+}
+
 const USTAWIENIA = {
   fat: {
     lagodna: { baza: 'jog', fala: 'easy' },
@@ -207,10 +228,11 @@ export function generujPlan({ typ, minuty, intensywnosc, nazwa } = {}) {
   else if (u.baza === u.fala) srodek = rdzenCiagly(rdzen, u.baza, 'Marsz', 'Równym krokiem');
   else srodek = rdzenFalujacy(rdzen, u, { baza: 'Marsz', fala: 'Żywszy marsz' });
 
+  const ramy_s = kotwicaRam(srodek);
   const segments = [
-    { t: wu, s: 'walk', i: 0, kind: 'warmup', label: 'Rozgrzewka' },
+    { t: wu, s: ramy_s, i: 0, kind: 'warmup', label: 'Rozgrzewka' },
     ...srodek.map((s) => ({ i: 0, ...s })),
-    { t: cd, s: 'walk', i: 0, kind: 'cooldown', label: 'Schłodzenie' },
+    { t: cd, s: ramy_s, i: 0, kind: 'cooldown', label: 'Schłodzenie' },
   ].filter((s) => s.t > 0);
 
   return {

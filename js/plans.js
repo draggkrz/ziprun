@@ -30,6 +30,10 @@ export function anchorSpeed(anchor, p) {
   const span = Math.max(0.5, p.fast - p.easy);
   const map = {
     stop: 0,
+    // Między zerem a marszem nie było nic, a rozgrzewka przed treningiem
+    // marszowym musi być wolniejsza od samego marszu — inaczej nie jest
+    // rozgrzewką, tylko pierwszym odcinkiem treningu pod inną nazwą.
+    stroll: Math.max(2.0, p.walk - 1.2),
     walk: p.walk,
     brisk: p.walk + 1.0,
     jog: Math.max(p.walk + 0.5, p.easy - 1.2),

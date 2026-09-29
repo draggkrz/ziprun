@@ -10,9 +10,19 @@
 // typu "to jeszcze nie jest wypchnięte, więc dopiszę do poprzedniej wersji" —
 // taki wyjątek raz już doprowadził do sześciu commitów pod jednym numerem.
 
-export const VERSION = '1.15.3';
+export const VERSION = '1.16.0';
 
 export const CHANGELOG = [
+  {
+    version: '1.16.0',
+    date: '2026-09-29',
+    title: 'Rozgrzewka lżejsza od samego treningu',
+    changes: [
+      'Generator dawał rozgrzewce i schłodzeniu zawsze tempo marszu. W planie marszowym oznaczało to rozgrzewkę w tempie samego treningu — sześć minut „rozgrzewki” szło dokładnie tak, jak potem cały trening.',
+      'Tempo ram wynika teraz z rdzenia: szczebel niżej niż najlżejszy odcinek treningu właściwego, ale nigdy wyżej niż marsz. Przed biegiem rozgrzewką zostaje marsz, przed marszem — spacer.',
+      'Plany zapisane wcześniej poprawiają się same przy pierwszym wczytaniu. Odcinki właściwe i czasy zostają nietknięte.',
+    ],
+  },
   {
     version: '1.15.3',
     date: '2026-09-23',

@@ -2,6 +2,7 @@
 // w localStorage. Żadne dane nie wychodzą z telefonu.
 
 import { DEFAULT_PROFILE } from './plans.js';
+import { kotwicaRam } from './generator.js';
 
 const KEY_PROFILE = 'ziprun.profile';
 const KEY_HISTORY = 'ziprun.history';
@@ -88,7 +89,7 @@ const MAX_PLANS = 50;
 export function loadPlans() {
   try {
     const l = JSON.parse(localStorage.getItem(KEY_PLANS) || '[]');
-    return Array.isArray(l) ? naprawPrzerwy(l) : [];
+    return Array.isArray(l) ? naprawRamy(naprawPrzerwy(l)) : [];
   } catch { return []; }
 }
 
@@ -126,6 +127,32 @@ export function deletePlan(id) {
   const ulubione = loadFavourites();
   if (ulubione.includes(id)) write(KEY_FAVS, ulubione.filter((x) => x !== id));
   return lista;
+}
+
+/**
+ * Generator do wersji 1.15.3 dawał rozgrzewce i schłodzeniu zawsze tempo
+ * marszu. W planie marszowym oznaczało to rozgrzewkę w tempie samego
+ * treningu — sześć minut „rozgrzewki" w tempie, w którym potem szedł cały
+ * trening. Plany zapisane wcześniej poprawiamy raz, przy wczytaniu;
+ * odcinki właściwe zostają nietknięte.
+ */
+function naprawRamy(lista) {
+  let zmienione = false;
+  const poprawione = lista.map((plan) => {
+    if (!plan?.generator || !Array.isArray(plan.segments) || plan.segments.length < 3) return plan;
+    const s = plan.segments;
+    if (s[0].kind !== 'warmup' || s[s.length - 1].kind !== 'cooldown') return plan;
+    const powinno = kotwicaRam(s.slice(1, -1));
+    if (s[0].s === powinno && s[s.length - 1].s === powinno) return plan;
+    zmienione = true;
+    return {
+      ...plan,
+      segments: s.map((x, i) =>
+        (i === 0 || i === s.length - 1 ? { ...x, s: powinno } : x)),
+    };
+  });
+  if (zmienione) write(KEY_PLANS, poprawione);
+  return poprawione;
 }
 
 export const loadProtocol = () => read(KEY_PROTO, { driver: '', notes: '', templates: [] });
