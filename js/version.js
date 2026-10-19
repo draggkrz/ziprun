@@ -10,9 +10,19 @@
 // typu "to jeszcze nie jest wypchnięte, więc dopiszę do poprzedniej wersji" —
 // taki wyjątek raz już doprowadził do sześciu commitów pod jednym numerem.
 
-export const VERSION = '1.16.0';
+export const VERSION = '1.17.0';
 
 export const CHANGELOG = [
+  {
+    version: '1.17.0',
+    date: '2026-10-19',
+    title: 'Wybór bieżni przy starcie treningu',
+    changes: [
+      'Dotknięcie „Rozpocznij trening” bez połączonej bieżni otwiera okno wyboru urządzenia, a po wyborze trening startuje od razu. Koniec z wycieczką do zakładki Bieżnia i z powrotem.',
+      'Zamknięcie okna wyboru nie blokuje treningu — zostaje tryb prowadzenia, tak jak dotąd.',
+      'Błąd połączenia widać na ekranie treningu, a nie w znikającym dymku.',
+    ],
+  },
   {
     version: '1.16.0',
     date: '2026-09-29',

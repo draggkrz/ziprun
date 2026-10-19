@@ -350,7 +350,7 @@ function odswiezOstrzezenia() {
   if (!plan) return;
   const notes = [];
   if (plan.manual) notes.push('Ten plan nie ustawia prędkości automatycznie — tempo dobierasz sam.');
-  if (!tm.connected) notes.push('Bieżnia nie jest połączona. Możesz uruchomić trening w trybie prowadzenia, ale bez automatycznego sterowania.');
+  if (!tm.connected) notes.push('Bieżnia nie jest połączona. Po dotknięciu „Rozpocznij trening” aplikacja zapyta, z którą się połączyć; możesz też pominąć wybór i biec w trybie prowadzenia.');
   else if (!tm.caps.speed) notes.push('Ta bieżnia nie przyjmuje komend prędkości — dostaniesz tylko zapowiedzi, co ustawić.');
 
   // Porównujemy z nachyleniem ZAŁOŻONYM w planie, nie z już przyciętym do zera —
@@ -403,13 +403,36 @@ function openPlan(id) {
 
 $('btn-start').addEventListener('click', async () => {
   if (!selectedPlan) return;
+
+  // Okno wyboru bieżni wymaga świeżego gestu użytkownika, a dotknięcie
+  // „Rozpocznij trening" nim jest — dlatego próba połączenia idzie PRZED
+  // czymkolwiek, na co trzeba czekać. Dzięki temu połączenie i start to
+  // jedno dotknięcie zamiast wycieczki do zakładki Bieżnia i z powrotem.
+  // Rezygnacja z wyboru nie blokuje treningu: zostaje tryb prowadzenia,
+  // bo po to się tu przyszło.
+  let bladPolaczenia = '';
+  if (!tm.connected && bleAvailable()) {
+    try {
+      await tm.pick();
+      await tm.connect();
+    } catch (e) {
+      // Zamknięcie okna wyboru to decyzja, nie awaria — o trybie prowadzenia
+      // i tak informuje komunikat kilka linijek niżej. Prawdziwy błąd trafia
+      // natomiast na ekran treningu, bo tam użytkownik właśnie patrzy.
+      if (e.name !== 'NotFoundError') {
+        bladPolaczenia = e.message;
+        logLine('BŁĄD: ' + e.message);
+      }
+    }
+  }
+
   const plan = znajdzPlan(selectedPlan.id);
   const rozpisany = engine.load(plan, profile);
   zbudujPierscienOdcinkow(rozpisany);
   // Komunikat z poprzedniego treningu zostawał na ekranie i wyglądał jak
   // informacja o bieżącym — „Trening zatrzymany." tuż po starcie nowego.
   clearTimeout(msgTimer);
-  $('run-msg').textContent = '';
+  $('run-msg').textContent = bladPolaczenia ? 'Nie udało się połączyć: ' + bladPolaczenia : '';
   runSaved = false;
   engine.autoControl = settings.autoControl && !plan.manual && tm.caps.speed;
   engine.followManual = settings.followManual;

@@ -278,6 +278,27 @@ treningu oraz w Profilu; wybór jest zapamiętywany.
 W obu trybach zostaje przycisk kończący trening: gdy zatrzymasz pas z konsoli
 bieżni, aplikacja wchodzi w pauzę i czeka na decyzję.
 
+## Łączenie z bieżnią
+
+Dotknięcie „Rozpocznij trening" bez połączonej bieżni otwiera okno wyboru
+urządzenia, a zaraz po wyborze startuje trening. Jedno dotknięcie zamiast
+wycieczki do zakładki Bieżnia i z powrotem.
+
+Działa to dlatego, że przeglądarka wymaga **świeżego gestu użytkownika** do
+otwarcia okna wyboru Bluetooth — a dotknięcie przycisku startu nim jest.
+Dlatego próba połączenia idzie w obsłudze przycisku przed czymkolwiek, na co
+trzeba czekać: po pierwszym `await` gest by się przeterminował.
+
+Zamknięcie okna wyboru nie blokuje treningu — zostaje tryb prowadzenia.
+Prawdziwy błąd połączenia (a nie rezygnacja) trafia na ekran treningu,
+bo tam w tej chwili patrzysz.
+
+Pełnej automatyki — łączenia bez żadnego dotknięcia — zrobić się nie da.
+Jedyne API, które zwraca wcześniej sparowane urządzenia bez okna wyboru,
+to `navigator.bluetooth.getDevices()`; w Chrome 152 jest nadal niedostępne
+(sprawdzone: `undefined`), bo od wersji 83 siedzi za flagą. Bez niego
+przeglądarka celowo nie pozwala stronie po cichu łączyć się ze sprzętem.
+
 ## Co aplikacja wie o zmianach z panelu bieżni
 
 | Zdarzenie na konsoli | Reakcja aplikacji |
