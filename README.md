@@ -195,10 +195,10 @@ długość, rodzaj treningu i intensywność — a resztę wylicza kod:
 
 | Rodzaj | Budowa rdzenia |
 |---|---|
-| Spalanie tłuszczu | falujące bloki po około cztery minuty, nisko w strefie tlenowej |
+| Spalanie tłuszczu | falujące bloki po około cztery minuty, przedzielone minutą marszu po każdej parze |
 | Interwały | serie o stałej długości przedzielone truchtem |
 | Wytrzymałość | jeden ciągły blok w równym tempie |
-| Narastający | kolejne stopnie w górę drabinki wysiłku, szczyt na końcu |
+| Narastający | kolejne stopnie w górę drabinki wysiłku, każdy o inne tempo, szczyt na końcu |
 | Marsz i regeneracja | spokojny marsz, przy wyższej intensywności lekko falujący |
 
 Rozgrzewka i schłodzenie dostają tempo **o szczebel niższe niż najlżejszy

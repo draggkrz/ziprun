@@ -92,8 +92,11 @@ let licznik = 0;
 const nowyId = () => 'wlasny-' + Date.now().toString(36) + '-' + (licznik++).toString(36) +
   Math.floor(Math.random() * 46656).toString(36);
 
-// Drabinka wysiłku od truchtu w górę — używana przez plan narastający.
-const DRABINKA = ['jog', 'easy', 'steady', 'tempo', 'threshold', 'vo2'];
+// Drabinka wysiłku dla planu narastającego. Zaczyna się od żwawego marszu,
+// bo przy łagodnej intensywności szczytem jest "easy" — z drabinki od truchtu
+// zostawały wtedy dwa szczeble na trzy stopnie i dwa ostatnie wychodziły
+// identyczne. Plan, którego sensem jest wzrost, kończył się płasko.
+const DRABINKA = ['brisk', 'jog', 'easy', 'steady', 'tempo', 'threshold', 'vo2'];
 
 // Pełna drabinka, od najwolniejszego. Służy do dobrania rozgrzewki
 // i schłodzenia poniżej najlżejszego odcinka właściwego treningu.
@@ -107,7 +110,10 @@ const PELNA_DRABINKA = ['stroll', 'walk', 'brisk', 'jog', 'easy', 'steady', 'tem
  * rozgrzewką ma zostać marsz, a nie trucht.
  */
 export function kotwicaRam(srodek) {
-  const najlzejszy = srodek
+  // Tylko odcinki pracy: przerwa jest z definicji lekka, więc porównywanie
+  // z nią kazałoby rozgrzewce schodzić coraz niżej bez powodu.
+  const praca = srodek.filter((s) => s.kind === 'work');
+  const najlzejszy = (praca.length ? praca : srodek)
     .map((s) => PELNA_DRABINKA.indexOf(s.s))
     .filter((i) => i >= 0)
     .reduce((a, b) => Math.min(a, b), PELNA_DRABINKA.length - 1);
@@ -144,21 +150,42 @@ const USTAWIENIA = {
   },
 };
 
+// Minuta marszu między parami bloków — tyle samo, ile ma odcinek „Luz"
+// w planie wbudowanym i „Marsz" w planie z FitShow.
+const PRZERWA_S = 60;
+
 /**
  * Falujące bloki: baza, fala, baza, fala... Blok trwa około czterech minut.
  *
  * Oba rodzaje bloków to praca. "recovery" w tej aplikacji znaczy przerwę
  * między wysiłkami, a nie wolniejsze z dwóch temp biegu — przy złym rodzaju
  * ekran treningu pisał „Przerwa" w trakcie czterominutowego biegu na ósemce.
+ *
+ * Przy `zPrzerwa` po każdej parze bloków (poza ostatnią) wchodzi minuta
+ * marszu. Bez niej plan „spalanie tłuszczu" biegł trzydzieści cztery minuty
+ * jednym ciągiem — trudniej, niż obiecuje jego nazwa, i inaczej niż oba
+ * plany wbudowane, na których był wzorowany.
  */
-function rdzenFalujacy(rdzen, { baza, fala }, etykiety) {
+function rdzenFalujacy(rdzen, { baza, fala }, etykiety, zPrzerwa = false) {
   const n = Math.max(2, Math.round(rdzen / 240));
-  return rozdziel(rdzen, n).map((t, i) => ({
-    t,
-    s: i % 2 === 0 ? baza : fala,
-    kind: 'work',
-    label: i % 2 === 0 ? etykiety.baza : etykiety.fala,
-  }));
+  // Przerwa stoi między parami, więc nigdy po ostatnim bloku — inaczej
+  // skleiłaby się ze schłodzeniem w jeden długi marsz.
+  const przerw = zPrzerwa ? Math.max(0, Math.floor((n - 1) / 2)) : 0;
+  const dlugosci = rozdziel(rdzen - przerw * PRZERWA_S, n);
+
+  const segmenty = [];
+  for (let i = 0; i < n; i++) {
+    segmenty.push({
+      t: dlugosci[i],
+      s: i % 2 === 0 ? baza : fala,
+      kind: 'work',
+      label: i % 2 === 0 ? etykiety.baza : etykiety.fala,
+    });
+    if (przerw && i % 2 === 1 && i < n - 1) {
+      segmenty.push({ t: PRZERWA_S, s: 'walk', kind: 'recovery', label: 'Marsz' });
+    }
+  }
+  return segmenty;
 }
 
 /**
@@ -186,7 +213,10 @@ function rdzenInterwalowy(rdzen, u) {
 /** Prędkość rośnie po drabince wysiłku aż do szczytu na ostatnim bloku. */
 function rdzenNarastajacy(rdzen, { szczyt }) {
   const doSzczytu = DRABINKA.indexOf(szczyt);
-  const n = Math.max(3, Math.min(doSzczytu + 1, Math.round(rdzen / 300)));
+  // Stopni nie może być więcej niż szczebli do szczytu — inaczej dwa wypadają
+  // na tej samej prędkości. Wcześniej dolne ograniczenie na trzy stopnie biło
+  // to sprawdzenie i właśnie tak powstawał płaski koniec.
+  const n = Math.min(doSzczytu + 1, Math.max(2, Math.round(rdzen / 300)));
   const kroki = Array.from({ length: n }, (_, i) =>
     DRABINKA[Math.round((i / (n - 1)) * doSzczytu)]);
   return rozdziel(rdzen, n).map((t, i) => ({
@@ -219,7 +249,7 @@ export function generujPlan({ typ, minuty, intensywnosc, nazwa } = {}) {
   const u = USTAWIENIA[typ][intensywnosc];
 
   let srodek;
-  if (typ === 'fat') srodek = rdzenFalujacy(rdzen, u, { baza: 'Bieg spokojny', fala: 'Przyspieszenie' });
+  if (typ === 'fat') srodek = rdzenFalujacy(rdzen, u, { baza: 'Bieg spokojny', fala: 'Przyspieszenie' }, true);
   else if (typ === 'interwaly') srodek = rdzenInterwalowy(rdzen, u);
   else if (typ === 'narastajacy') srodek = rdzenNarastajacy(rdzen, u);
   else if (typ === 'wytrzymalosc') srodek = rdzenCiagly(rdzen, u.tempo, 'Bieg ciągły', 'Równe tempo, równy oddech');

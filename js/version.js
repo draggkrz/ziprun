@@ -10,9 +10,19 @@
 // typu "to jeszcze nie jest wypchnięte, więc dopiszę do poprzedniej wersji" —
 // taki wyjątek raz już doprowadził do sześciu commitów pod jednym numerem.
 
-export const VERSION = '1.17.0';
+export const VERSION = '1.18.0';
 
 export const CHANGELOG = [
+  {
+    version: '1.18.0',
+    date: '2026-10-21',
+    title: 'Przerwy w planie spalania tłuszczu',
+    changes: [
+      'Wygenerowany plan „spalanie tłuszczu” biegł całym rdzeniem bez jednej przerwy — w wariancie 45-minutowym trzydzieści cztery minuty ciągiem. Teraz po każdej parze bloków wchodzi minuta marszu, tak jak w planie wbudowanym i w planie z FitShow.',
+      'Plan narastający miewał dwa ostatnie stopnie o tej samej prędkości, czyli kończył się płasko. Stopni jest teraz tyle, ile szczebli do szczytu, a drabinka zaczyna się od żwawego marszu, więc łagodny wariant ma trzy różne tempa zamiast dwóch i powtórki.',
+      'Plany zapisane wcześniej zostają bez zmian — poprawki dotyczą nowo układanych.',
+    ],
+  },
   {
     version: '1.17.0',
     date: '2026-10-19',
