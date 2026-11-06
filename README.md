@@ -299,6 +299,27 @@ to `navigator.bluetooth.getDevices()`; w Chrome 152 jest nadal niedostępne
 (sprawdzone: `undefined`), bo od wersji 83 siedzi za flagą. Bez niego
 przeglądarka celowo nie pozwala stronie po cichu łączyć się ze sprzętem.
 
+## Plan nadąża za pasem
+
+Połączenie przez Bluetooth udaje się także wtedy, gdy konsola bieżni jest
+uśpiona — samo połączenie niczego więc nie gwarantuje. Dlatego po komendzie
+startu aplikacja czeka, aż pas naprawdę ruszy, i **jeśli nie ruszy w ciągu
+trzydziestu sekund, trening nie rusza wcale**: zamiast odliczać plan obok
+stojącej bieżni, wraca do ekranu planu z wyjaśnieniem. Zapis techniczny
+takiej próby zostaje w Ustawieniach, bo to on mówi, co bieżnia odpowiedziała.
+
+W trakcie treningu aplikacja pilnuje prędkości pasa:
+
+| Co się dzieje | Reakcja |
+|---|---|
+| Pas stoi przez 3 sekundy, choć plan przewiduje bieg | Trening wstrzymany, zegar planu staje razem z pasem |
+| Pas znów się kręci przez 2 sekundy | Trening wznowiony, prędkość odcinka ustawiona od nowa |
+
+Opieramy się na raportowanej prędkości, a nie na ramce statusu bieżni:
+ramka bywa spóźniona albo nie przychodzi wcale, a prędkość pasa bieżnia
+podaje zawsze. Wznowienie wymaga, żeby pas najpierw naprawdę stanął —
+inaczej hamowanie po pauzie wciśniętej w aplikacji wyglądałoby jak start.
+
 ## Co aplikacja wie o zmianach z panelu bieżni
 
 | Zdarzenie na konsoli | Reakcja aplikacji |

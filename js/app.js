@@ -689,6 +689,27 @@ async function waitForBeltStop(maxS = 30) {
  * "ended" leci dopiero po wysłaniu komendy zatrzymania pasa — inaczej
  * najważniejszy moment treningu wypadałby poza zapisem technicznym.
  */
+/**
+ * Trening, który się nie zaczął, bo pas nie ruszył. Do historii nie trafia —
+ * nie ma czego zapisywać — ale zapis techniczny zostaje, bo to właśnie on
+ * odpowiada na pytanie, dlaczego bieżnia nie posłuchała.
+ */
+engine.on('cancelled', async (powod) => {
+  if (runSaved) return;
+  runSaved = true;
+  keeper.release();
+  trace.add('trening', 'Anulowano: ' + powod);
+  trace.stop();
+  store.addTrace({
+    date: new Date().toISOString(),
+    planName: (engine.plan?.name || '—') + ' · nie wystartował',
+    completed: false,
+    data: trace.toStored(),
+  });
+  goto('plan');
+  toast(powod, true);
+});
+
 engine.on('ended', async (sum) => {
   // Zabezpieczenie przed dwukrotnym zapisem tego samego treningu.
   if (runSaved) return;

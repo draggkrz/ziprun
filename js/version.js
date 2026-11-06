@@ -10,9 +10,19 @@
 // typu "to jeszcze nie jest wypchnięte, więc dopiszę do poprzedniej wersji" —
 // taki wyjątek raz już doprowadził do sześciu commitów pod jednym numerem.
 
-export const VERSION = '1.18.0';
+export const VERSION = '1.19.0';
 
 export const CHANGELOG = [
+  {
+    version: '1.19.0',
+    date: '2026-11-06',
+    title: 'Plan nie biegnie bez pasa',
+    changes: [
+      'Gdy pas nie ruszy w ciągu trzydziestu sekund od startu, trening nie zaczyna się wcale — wcześniej zegar ruszał mimo wszystko i plan przebiegał obok stojącej bieżni. Połączenie przez Bluetooth udaje się także przy uśpionej konsoli, więc samo połączenie niczego nie gwarantuje.',
+      'Zatrzymanie pasa z konsoli wstrzymuje teraz trening po trzech sekundach, a ponowny start wznawia go po dwóch. Aplikacja patrzy na prędkość pasa, a nie czeka na ramkę statusu, która bywa spóźniona albo nie przychodzi wcale.',
+      'Trening, który nie wystartował, nie trafia do historii — ale jego zapis techniczny zostaje, bo to on tłumaczy, dlaczego bieżnia nie posłuchała.',
+    ],
+  },
   {
     version: '1.18.0',
     date: '2026-10-21',

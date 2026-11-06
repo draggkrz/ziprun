@@ -26,6 +26,15 @@ export function rampSeconds(delta) {
 
 const ANNOUNCE_LEAD_S = 10; // ile sekund przed segmentem leci zapowiedź
 
+// Pilnowanie, czy plan i bieżnia opowiadają tę samą historię. Bieżnia nie
+// zawsze zgłasza zatrzymanie własną ramką statusu, ale prędkość pasa raportuje
+// zawsze — i to ona jest tu jedynym wiarygodnym świadkiem.
+const PAS_STOI = 0.2;      // km/h; poniżej tego pas uznajemy za stojący
+// Ten sam próg co w _waitForBelt: gdyby były różne, pas uznany tam za ruszający
+// mógłby tu jeszcze liczyć się jako stojący.
+const PAS_STOI_S = 3;      // tyle sekund postoju wstrzymuje trening
+const PAS_RUSZYL_S = 2;    // tyle sekund ruchu wznawia wstrzymany trening
+
 // Wykrywanie prędkości zmienionej z panelu bieżni. Bieżnia nie wysyła o tym
 // żadnego zdarzenia — jedynym śladem jest rozjazd między prędkością, którą
 // zamówiliśmy, a tą, którą raportuje pas. W zapisach treningów pas trzyma
@@ -73,11 +82,30 @@ export class WorkoutEngine {
     this._lastSampleBucket = -1;
     this._celBiezni = null;    // ostatni cel, ktory sami zamowilismy
     this._komendaTs = 0;
+    this._stojiOd = null;      // odkad pas stoi mimo planu
+    this._ruszylOd = null;     // odkad pas znow sie krecia na pauzie
+    this._bylPostoj = false;   // czy na pauzie pas zdazyl stanac
     this._obserwowana = null;  // predkosc pasa, ktora wlasnie sie utrzymuje
     this._obserwowanaOd = 0;
     this._zPanelu = null;      // predkosc juz przyjeta z panelu biezni
     this.samples = [];         // do wykresu i historii
-    this._cb = { tick: [], segment: [], state: [], msg: [], ended: [] };
+    this._cb = { tick: [], segment: [], state: [], msg: [], ended: [], cancelled: [] };
+
+    // Bieżnia wznowiona z konsoli: plan ma za nią nadążyć, a nie czekać,
+    // aż ktoś dotknie telefonu. Wymagamy, żeby pas najpierw naprawdę stanął
+    // — inaczej hamowanie po naszej własnej pauzie wyglądałoby jak start.
+    this.tm.on('data', (m) => {
+      if (this.state !== STATE.PAUSED || !this.autoControl) return;
+      const v = m?.speed ?? 0;
+      if (v < PAS_STOI) { this._bylPostoj = true; this._ruszylOd = null; return; }
+      if (!this._bylPostoj) return;
+      this._ruszylOd = this._ruszylOd ?? Date.now();
+      if (Date.now() - this._ruszylOd < PAS_RUSZYL_S * 1000) return;
+      this._ruszylOd = null;
+      this._bylPostoj = false;
+      this._msg('Pas znów się kręci — wznawiam trening.');
+      this.resume();
+    });
 
     this.tm.on('status', (s) => {
       // Kluczyk bezpieczeństwa wyjęty albo użytkownik zatrzymał pas z konsoli.
@@ -110,6 +138,9 @@ export class WorkoutEngine {
     this._lastSampleBucket = -1;
     this._celBiezni = null;
     this._komendaTs = 0;
+    this._stojiOd = null;
+    this._ruszylOd = null;
+    this._bylPostoj = false;
     this._obserwowana = null;
     this._obserwowanaOd = 0;
     this._zPanelu = null;
@@ -158,7 +189,17 @@ export class WorkoutEngine {
     if (this.autoControl) {
       try {
         await this.tm.start();
-        await this._waitForBelt();
+        // Wynik tego czekania był wcześniej ignorowany: po trzydziestu
+        // sekundach bez ruchu pasa zegar ruszał tak czy inaczej i plan
+        // przebiegał sam, obok stojącej bieżni. Połączenie przez Bluetooth
+        // udaje się także wtedy, gdy konsola jest uśpiona — samo połączenie
+        // niczego więc nie gwarantuje.
+        if (!(await this._waitForBelt())) {
+          if (this.state === STATE.RUNNING) {
+            await this.cancel('Pas nie ruszył. Sprawdź, czy konsola bieżni jest włączona i czy kluczyk bezpieczeństwa jest na miejscu.');
+          }
+          return;
+        }
       } catch (e) {
         this._msg('Nie udało się wystartować bieżni: ' + e.message + ' — przechodzę w tryb prowadzenia.');
         this.autoControl = false;
@@ -238,6 +279,8 @@ export class WorkoutEngine {
     }
 
     this._sledzPanel(m);
+    this._pilnujPasa(m);
+    if (this.state !== STATE.RUNNING) return;
     this._maybeAnnounce();
     this._maybePreRamp();
 
@@ -349,6 +392,44 @@ export class WorkoutEngine {
     this._announced = -1;
     this._ramped = -1;
     this.applySegment(this.segment);
+  }
+
+  /**
+   * Plan przewiduje bieg, a pas stoi — bieżnię zatrzymano z konsoli albo
+   * sama się wyłączyła. Zegar planu nie ma prawa iść dalej, bo trening
+   * wtedy się nie odbywa.
+   *
+   * Opieramy się na raportowanej prędkości, a nie na ramce statusu, bo ramka
+   * bywa spóźniona albo nie przychodzi wcale — prędkość pasa bieżnia podaje
+   * zawsze.
+   */
+  _pilnujPasa(m) {
+    if (!this.autoControl || this.state !== STATE.RUNNING) return;
+    const v = m?.speed;
+    // Brak danych to nie postój: w trybie prowadzenia nikt ich nie przysyła,
+    // a zerwane połączenie zostawia ostatni odczyt, nie zero.
+    if (v == null || this.targetSpeedFor(this.segment) <= PAS_STOI) { this._stojiOd = null; return; }
+    if (v >= PAS_STOI) { this._stojiOd = null; return; }
+    this._stojiOd = this._stojiOd ?? Date.now();
+    if (Date.now() - this._stojiOd < PAS_STOI_S * 1000) return;
+    this._stojiOd = null;
+    this._bylPostoj = true;
+    this.pause('Pas stanął, choć plan przewiduje bieg — wstrzymuję trening.');
+  }
+
+  /**
+   * Trening, który się nie zaczął. W odróżnieniu od abort() nie zgłasza
+   * zdarzenia "ended", więc nie trafia do historii — nie ma czego zapisywać.
+   */
+  async cancel(reason) {
+    clearInterval(this._timer);
+    this.tm.stopRamp();
+    this.ramping = null;
+    this._setState(STATE.ABORTED);
+    this._msg(reason);
+    if (this.autoControl) { try { await this.tm.stopBelt(); } catch { /* ignoruj */ } }
+    this.speech?.say(reason, { priority: true });
+    this._emit('cancelled', reason);
   }
 
   /**
